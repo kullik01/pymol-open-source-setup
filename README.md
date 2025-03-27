@@ -1,0 +1,1 @@
+# pymol-open-source-setup

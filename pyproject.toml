@@ -1,0 +1,25 @@
+[project]
+name = "pymol"
+readme = "README.md"
+requires-python = ">=3.11"
+version = "3.1.0.4"
+license = {file = "LICENSE"}
+#description = """
+#PyMOL is a Python-enhanced molecular graphics tool.
+#It excels at 3D visualization of proteins, small molecules, density,
+#surfaces, and trajectories. It also includes molecular editing,
+#ray tracing, and movies. Open Source PyMOL is free to everyone!
+#"""
+authors = [
+    {name = "Hannah Kullik",email = "hannah.kullik@studmail.w-hs.de"},
+    {name = "Martin Urban",email = "martin.urban@studmail.w-hs.de"}
+]
+
+[build-system]
+requires = ["setuptools", "numpy==1.26.4", "toml"]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+Homepage = "https://kullik01.github.io/pymol-open-source-setup"
+Documentation = "https://pymolwiki.org/index.php/Main_Page"
+Repository = "https://github.com/kullik01/pymol-open-source-setup"

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="660"
+   height="400"
+   viewBox="0 0 174.625 105.83333"
+   version="1.1"
+   id="svg1"
+   inkscape:export-filename="bitmap.svg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px" />
+  <defs
+     id="defs1">
+    <linearGradient
+       id="linearGradient2"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#f03771;stop-opacity:0.94901961;"
+         offset="0"
+         id="stop2" />
+      <stop
+         style="stop-color:#82002b;stop-opacity:0.80991733;"
+         offset="1"
+         id="stop3" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2"
+       id="linearGradient3"
+       x1="66.881187"
+       y1="39.094704"
+       x2="107.74381"
+       y2="39.094704"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#ffffff;fill-opacity:1;stroke-width:0.628187;stroke-dasharray:none"
+       id="rect3"
+       width="174.625"
+       height="105.83333"
+       x="0"
+       y="0" />
+    <ellipse
+       style="fill:#e1e1e1;fill-opacity:0.949886;stroke-width:0.54893;stroke-dasharray:none"
+       id="path2"
+       cx="44.817787"
+       cy="45.980206"
+       rx="108.36346"
+       ry="53.213047" />
+    <ellipse
+       style="fill:#e1e1e1;fill-opacity:0.949886;stroke-width:0.533303;stroke-dasharray:none"
+       id="path2-6"
+       cx="147.565"
+       cy="50.763084"
+       rx="88.343987"
+       ry="61.608311" />
+    <path
+       d="m 72.182995,53.713614 h 27.602432 l -3.284199,2.353468 c -0.428214,0.306864 -0.428214,0.804387 0,1.11125 0.428216,0.306864 1.122504,0.306864 1.55072,0 l 5.165372,-3.702579 c 0.42823,-0.292258 0.44477,-0.777928 0.0371,-1.084791 -0.0126,-0.009 -0.0243,-0.01786 -0.0371,-0.02646 l -5.166475,-3.70152 c -0.40784,-0.306863 -1.08558,-0.318717 -1.513795,-0.02646 -0.01256,0.0086 -0.02498,0.01744 -0.03698,0.02646 -0.428228,0.292259 -0.444765,0.777928 -0.03698,1.084792 0.01256,0.009 0.02428,0.01786 0.03698,0.02646 l 3.284193,2.354791 H 72.182995 c -0.61174,0 -1.107656,0.355362 -1.107656,0.79375 0,0.438388 0.495916,0.79375 1.107656,0.79375 z"
+       id="path1"
+       style="stroke-width:0.312604;stroke-dasharray:none" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:6.35px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Semi-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:url(#linearGradient3);fill-opacity:0.949886;stroke-width:0.296;stroke-dasharray:none"
+       x="66.617638"
+       y="40.697708"
+       id="text2"><tspan
+         sodipodi:role="line"
+         id="tspan2"
+         style="font-style:normal;font-variant:normal;font-weight:600;font-stretch:normal;font-size:6.35px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Semi-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:url(#linearGradient3);fill-opacity:1;stroke-width:0.296"
+         x="66.617638"
+         y="40.697708">drag and drop</tspan></text>
+  </g>
+</svg>

@@ -1,0 +1,74 @@
+/*
+#A* -------------------------------------------------------------------
+#B* This file contains source code for the styling PyMOL.
+#C* Copyright 2025 by Schrodinger, Martin Urban.
+#D* -------------------------------------------------------------------
+#E* It is unlawful to modify or remove this copyright notice.
+#F* -------------------------------------------------------------------
+#G* Please see the accompanying LICENSE_Schrodinger file for further information.
+#H* -------------------------------------------------------------------
+#I* Additional authors of this source file include:
+#-* unknown
+#-*
+#J* This file contains added source code by Martin Urban and is indicated
+#-* by /* BEGIN EDITED CODE SEGMENT
+#Z* -------------------------------------------------------------------
+ */
+/* Style for QPushButton with the 'builder' object name */
+#builder QPushButton {
+    padding: 1px 3px;
+}
+
+/* Style for QPushButton with the quickbutton=true property */
+QPushButton[quickbutton="true"] {
+    padding: 1px 5px;
+}
+
+/* Style for QMainWindow's separator */
+QMainWindow::separator {
+    width: 5px;
+    height: 5px;
+    border: none;
+}
+
+/* BEGIN EDITED CODE SEGMENT
+:author Martin Urban
+*/
+/*<editor-fold desc="QMenu style">*/
+QMenuBar {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f9f9f9, stop:1 #f0f0f0);
+    color: black;
+}
+
+QMenuBar::item:selected {
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #E8E8E8, stop:1 #DBDBDB);;
+}
+
+QMenuBar::item:!enabled {
+    color: #9e9c9a;
+}
+
+QMenu {
+    background-color: white;
+    margin: 2px; /* some spacing around the menu */
+}
+
+QMenu::item {
+    padding: 2px 25px 2px 20px;
+}
+
+QMenu::item:selected {
+    background: #D6E4FD;
+    border-width: 2px;
+    border-radius: 4px;
+    border-color: white;
+}
+
+QMenu::separator {
+    height: 1px;
+    background: #E2E2E2;
+    margin-left: 10px;
+    margin-right: 5px;
+}
+/*</editor-fold>*/
+/* END EDITED CODE SEGMENT */

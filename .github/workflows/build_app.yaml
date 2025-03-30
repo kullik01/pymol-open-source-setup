@@ -109,7 +109,7 @@ jobs:
           ./automator.sh build app
 
       - name: Rename app package
-        run: mv build/open_source_pymol-3.1.0.4.app dist/Open-Source-PyMOL-3.1.0.4.app
+        run: mv os_specific/macos/build/open_source_pymol-3.1.0.4.app dist/Open-Source-PyMOL-3.1.0.4.app
 
       - name: Build DMG
         uses: urban233/create-dmg-actions@v0.0.2

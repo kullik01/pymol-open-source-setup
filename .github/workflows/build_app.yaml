@@ -156,7 +156,7 @@ jobs:
           mkdir -p packaged/build/Open-Source-PyMOL-3.1.0.4
           cp -r ./dist/exe.linux*/* packaged/build/Open-Source-PyMOL-3.1.0.4/
           mkdir -p packaged/bin
-          tar czvf packaged/bin/Open-Source-PyMOL-3.1.0.4.tar.gz packaged/build/Open-Source-PyMOL-3.1.0.4
+          tar czvf packaged/bin/Open-Source-PyMOL-3.1.0.4.tar.gz packaged/build/Open-Source-PyMOL-3.1.0.4 
           rm -r packaged/build
 
       - name: Prepare packaging environment
@@ -179,8 +179,7 @@ jobs:
           -C package-root \
           --description "PyMOL installation for debian-based distros" \
           --license "BSD-3-Clause" \
-          --maintainer "Martin Urban <martin.urban@studmail.w-hs.de>"
-          cp open-source-pymol-3.1.0.4_amd64.deb ./packaged/bin/open-source-pymol-3.1.0.4_amd64.deb 
+          --maintainer "Martin Urban <martin.urban@studmail.w-hs.de>" 
 
       - name: Build .rpm package
         run: |
@@ -191,12 +190,14 @@ jobs:
           -C package-root \
           --description "PyMOL installation for red-hat-based distros" \
           --license "BSD-3-Clause" \
-          --maintainer "Martin Urban <martin.urban@studmail.w-hs.de>"
-          cp open-source-pymol-3.1.0.4_amd64.rpm ./packaged/bin/open-source-pymol-3.1.0.4_amd64.rpm 
+          --maintainer "Martin Urban <martin.urban@studmail.w-hs.de>" 
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: Open-Source-PyMOL-GNU-Linux-x86_64-Setup
-          path: ./packaged/bin/*
+          path: |
+            packaged/bin/*.tar.gz
+            *.deb
+            *.rpm
   # --- end

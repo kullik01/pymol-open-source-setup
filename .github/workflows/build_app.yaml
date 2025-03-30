@@ -153,10 +153,9 @@ jobs:
 
       - name: Build tar.gz portable installation
         run: |
-          mkdir packaged
-          mkdir packaged/build/Open-Source-PyMOL-3.1.0.4
+          mkdir -p packaged/build/Open-Source-PyMOL-3.1.0.4
           cp -r ./dist/exe.linux*/* packaged/build/Open-Source-PyMOL-3.1.0.4/
-          mkdir packaged/bin
+          mkdir -p packaged/bin
           tar czvf packaged/bin/Open-Source-PyMOL-3.1.0.4.tar.gz packaged/build/Open-Source-PyMOL-3.1.0.4
           rm -r packaged/build
 
@@ -167,6 +166,8 @@ jobs:
           cp -r ./dist/exe.linux*/* package-root/opt/Open-Source-PyMOL-3.1.0.4/
           mkdir -p package-root/usr/bin
           ln -s /opt/Open-Source-PyMOL-3.1.0.4/Open-Source-PyMOL package-root/usr/bin/Open-Source-PyMOL
+          mkdir -p package-root/usr/share/applications
+          cp os_specific/linux/open-source-pymol.desktop package-root/usr/share/applications 
           
           fpm -s dir -t deb \
           -n open-source-pymol \

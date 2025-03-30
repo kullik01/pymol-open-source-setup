@@ -4,9 +4,9 @@ nav:
     - Home: index.md
     - Install:
           - Download: install.md
-          - Install Windows: install_windows.md
-          - Install macOS: install_macos.md
-          - Install Linux: install_linux.md
+          - Install on Windows: install_windows.md
+          - Install on macOS: install_macos.md
+          - Install on Linux: install_linux.md
     - Manual: manual.md
     - Wiki: https://pymolwiki.org/index.php/Main_Page
     - About: about.md

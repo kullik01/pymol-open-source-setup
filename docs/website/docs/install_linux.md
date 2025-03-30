@@ -2,6 +2,8 @@
 There are three different packages available to install
 Open-Source PyMOL under Linux.
 
+Install location: `/opt/open-source-pymol`
+
 ## Debian-based distros (Ubuntu, PopOS!)
 To install the DEB package, run the following command:
 ```shell

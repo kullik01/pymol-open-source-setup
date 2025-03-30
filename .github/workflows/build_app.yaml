@@ -111,12 +111,19 @@ jobs:
       - name: Rename app package
         run: mv os_specific/macos/build/open_source_pymol-3.1.0.4.app dist/Open-Source-PyMOL-3.1.0.4.app
 
-      - name: Build DMG
+      - name: Ensure no other process is using the DMG
+        run: |
+          hdiutil detach /Volumes/Open-Source-PyMOL || true
+
+      - name: Build DMG with retry
         uses: urban233/create-dmg-actions@v0.0.2
         with:
           dmg_name: 'Open-Source-PyMOL'
           src_dir: 'dist/Open-Source-PyMOL-3.1.0.4.app'
           bg_filepath: 'os_specific/macos/dmg/bg.png'
+        env:
+          RETRIES: 3
+          RETRY_DELAY: 10
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

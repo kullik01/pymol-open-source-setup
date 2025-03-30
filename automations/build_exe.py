@@ -78,7 +78,7 @@ class BuildExe:
   def setup_based_build(self) -> None:
     """Uses the cx_freeze setup.py for the build process."""
     self.setup_build_environment()
-    if const.WIN32:
+    if const.WIN32 or const.__linux__:
       subprocess.run(
         [const.PYTHON_EXECUTABLE, self.build_script_filepath, "build_exe"],
         stdout=sys.stdout, stderr=sys.stderr, text=True, cwd=const.OS_SPECIFIC_DIR
@@ -88,7 +88,8 @@ class BuildExe:
         [const.PYTHON_EXECUTABLE, self.build_script_filepath, "bdist_mac"],
         stdout=sys.stdout, stderr=sys.stderr, text=True, cwd=const.OS_SPECIFIC_DIR
       )
-
+    else:
+      const.invalid_platform()
     shutil.copytree(self.build_dir, pathlib.Path(const.PROJECT_ROOT_DIR / "dist"),
                     dirs_exist_ok=True)
 

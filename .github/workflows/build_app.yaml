@@ -127,15 +127,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install git build-essential libxmu-dev libxi-dev libgl-dev libglew-dev libpng-dev libfreetype6-dev libxml2-dev libmsgpack-dev libglm-dev libnetcdf-dev linux-libc-dev autoconf perl
-
-      - name: Initialize vcpkg
-        run: |
-          git clone https://github.com/Microsoft/vcpkg.git vendor/vcpkg
-
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -145,30 +136,16 @@ jobs:
         run: |
           python -m venv .venv
           source .venv/bin/activate
-          python -m pip install wheel setuptools cibuildwheel 
+          python -m pip install wheel setuptools 
           python -m pip install -r requirements.txt
 
-      - name: Bootstrap vcpkg
-        run: ${{ env.VCPKG_ROOT }}/bootstrap-vcpkg.sh -disableMetrics
-
-      - name: Install vcpkg dependencies
+      - name: Build app package
         run: |
-          ${{ env.VCPKG_ROOT }}/vcpkg install
-
-      - name: Last build environment setup steps
-        run: |
-          source .venv/bin/activate
-          python automations/my_automator.py setup dev-env
-
-      - name: Build C extension
-        run: |
-          source .venv/bin/activate
-          python automations/my_automator.py setup dev-env
-          cibuildwheel .
+          ./automator.sh build app
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PyMOL-wheel-GNU-Linux-3.11
-          path: ./wheelhouse/*.whl
+          name: Open-Source-PyMOL-GNU-Linux-3.11-Setup
+          path: ./dist/exe.linux*
   # --- end

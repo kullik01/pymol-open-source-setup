@@ -6,6 +6,7 @@ from cx_Freeze import setup
 
 from automations.const import OS_SPECIFIC_DIR
 
+
 # <editor-fold desc="Module constants">
 PROJECT_ROOT_DIR = pathlib.Path(__file__).parent.parent.parent
 PYTHON_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}"
@@ -17,7 +18,7 @@ tmp_pyproject_toml = toml.load(
 PROJECT_NAME = tmp_pyproject_toml["project"]["name"]
 PROJECT_VERSION = tmp_pyproject_toml["project"]["version"]
 
-SHARED_SUFFIX = f".cpython-{PYTHON_VERSION.replace('.', '')}-darwin.so"
+SHARED_SUFFIX = f".cpython-{PYTHON_VERSION.replace('.', '')}-x86_64-linux-gnu.so"
 # </editor-fold>
 
 
@@ -38,24 +39,19 @@ build_exe_options = {
   ]
 }
 
-# The custom .plist file needs manual version change!
-bdist_mac_options = {
-  "custom_info_plist": pathlib.Path(PROJECT_ROOT_DIR / "os_specific/macos" / "Info.plist")
-}
 
 setup(
   name="Open-Source-PyMOL",
   version=PROJECT_VERSION,
   options={
-    "build_exe": build_exe_options,
-    "bdist_mac": bdist_mac_options
+    "build_exe": build_exe_options
   },
   executables=[
     {
-      "target_name": "PyMOL",
+      "target_name": "Open-Source-PyMOL",
       "script": pathlib.Path(PYMOL_PACKAGE_DIR / "startup_wrapper.py"),
       "base": "gui",
-      "icon": pathlib.Path(OS_SPECIFIC_DIR / "icon.icns"),
+      "icon": pathlib.Path(OS_SPECIFIC_DIR / "logo.png"),
     }
   ],
 )

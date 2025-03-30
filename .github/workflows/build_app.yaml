@@ -56,9 +56,10 @@ jobs:
           $env:PATH += ";C:\Program Files (x86)\Inno Setup 6"
 
       - name: Build frozen Python application
-        if: ${{ matrix.win_arch == 'x64' }}
         run: |
           .\win_automator.bat build app
+          .\win_automator.bat build inno_setup_ci
+
         shell: powershell
 
       - name: Compile .iss file
@@ -109,7 +110,7 @@ jobs:
         with:
           dmg_name: 'Open-Source-PyMOL'
           src_dir: 'dist/Open-Source-PyMOL-3.1.0a0.app'
-          bg_filepath: 'alternative_design/dmg_bg.png'
+          bg_filepath: 'os_specific/macos/dmg_bg.png'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -146,6 +147,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Open-Source-PyMOL-GNU-Linux-3.11-Setup
+          name: Open-Source-PyMOL-GNU-Linux-x86_64-Setup
           path: ./dist/exe.linux*
   # --- end

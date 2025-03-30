@@ -40,6 +40,10 @@ AUTOMATION_TREE = {
       "inno_setup": {
         "help": "Creates the Inno setup for the Windows installation",
         "func": build_inno_setup.build
+      },
+      "inno_setup_ci": {
+        "help": "Creates the Inno setup for the Windows installation in the Windows GitHub action runner (CI)",
+        "func": build_inno_setup.build_for_ci
       }
     }
   }

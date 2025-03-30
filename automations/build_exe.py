@@ -49,7 +49,7 @@ class BuildExe:
       const.PROJECT_ROOT_DIR / "alternative_design" / "alt_logo.png"
     )
     tmp_alternative_splash_screen_filepath = pathlib.Path(
-      const.PROJECT_ROOT_DIR / "alternative_design" / "splash.png"
+      const.OS_SPECIFIC_DIR / "splash.png"
     )
     # </editor-fold>
     # <editor-fold desc="Custom file replacements">

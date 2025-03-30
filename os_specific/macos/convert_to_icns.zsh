@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-INPUT_FILE="logo.png"
+INPUT_FILE="../../alternative_design/logo.png"
 OUTPUT_DIR="./icon.iconset"
 
 mkdir -p "$OUTPUT_DIR"
@@ -13,3 +13,5 @@ for size in $SIZES; do
 done
 
 iconutil -c icns icon.iconset
+
+rm -r icon.iconset

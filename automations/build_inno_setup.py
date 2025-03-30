@@ -50,8 +50,18 @@ class BuildInnoSetup:
       stdout=sys.stdout, stderr=sys.stderr, text=True
     )
 
+  def build_inno_setup_for_ci(self) -> None:
+    """Builds the PyMOL Windows EXE file."""
+    self.setup_build_environment()
+
 
 def build() -> None:
   """Builds the inno setup EXE file."""
   tmp_builder = BuildInnoSetup()
   tmp_builder.build_inno_setup()
+
+
+def build_for_ci() -> None:
+  """Builds the inno setup EXE file running in the Windows GitHub action runner."""
+  tmp_builder = BuildInnoSetup()
+  tmp_builder.build_inno_setup_for_ci()

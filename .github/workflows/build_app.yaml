@@ -1,0 +1,174 @@
+#A* -------------------------------------------------------------------
+#B* This file contains source code for running a GitHub automation
+#-* related to the build process of the PyMOL computer program
+#C* Copyright 2025 by Martin Urban.
+#D* -------------------------------------------------------------------
+#E* It is unlawful to modify or remove this copyright notice.
+#F* -------------------------------------------------------------------
+#G* Please see the accompanying LICENSE file for further information.
+#H* -------------------------------------------------------------------
+#I* Additional authors of this source file include:
+#-*
+#-*
+#-*
+#Z* -------------------------------------------------------------------
+name: Build app packages
+
+on: [push]
+
+jobs:
+  # ----- Windows build section
+  build-windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        win_arch: ['x86', 'x64']
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Create virtual environment
+        run: |
+          python -m venv .venv
+          call .venv\Scripts\activate.bat
+          python -m pip install --upgrade setuptools pip build 
+          python -m pip install -r requirements.txt
+        shell: cmd
+
+      - name: Download Inno Setup installer
+        run: |
+          Invoke-WebRequest -Uri https://files.jrsoftware.org/is/6/innosetup-6.4.2.exe -OutFile inno-setup.exe
+
+      - name: Install Inno Setup
+        run: |
+          .\inno-setup.exe /SILENT
+
+      - name: Add Inno Setup to PATH
+        run: |
+          $env:PATH += ";C:\Program Files (x86)\Inno Setup 6"
+
+      - name: Build frozen Python application
+        if: ${{ matrix.win_arch == 'x64' }}
+        run: |
+          .\win_automator.bat build app
+        shell: powershell
+
+      - name: Compile .iss file
+        run: |
+          iscc os_specific/windows/inno_setup/setup.iss
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Open-Source-PyMOL-Windows-${{ matrix.win_arch }}-Setup
+          path: ./dist/*.exe
+  # --- end
+
+  # ----- macOS build section
+  build-macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ macos-13, macos-14 ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Create virtual environment
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install wheel setuptools 
+          python -m pip install -r requirements.txt
+
+      - name: Build app package
+        run: |
+          ./automator.sh build app
+
+      - name: Rename app package
+        run: mv dist/open_source_pymol-3.1.0a0.app dist/Open-Source-PyMOL-3.1.0a0.app
+
+      - name: Build DMG
+        uses: urban233/create-dmg-actions@v0.0.2
+        with:
+          dmg_name: 'Open-Source-PyMOL'
+          src_dir: 'dist/Open-Source-PyMOL-3.1.0a0.app'
+          bg_filepath: 'alternative_design/dmg_bg.png'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Open-Source-PyMOL-macOS-${{ matrix.arch }}-Setup
+          path: ./*.dmg
+  # --- end
+
+  # ----- GNU Linux build section
+  build-gnu-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install git build-essential libxmu-dev libxi-dev libgl-dev libglew-dev libpng-dev libfreetype6-dev libxml2-dev libmsgpack-dev libglm-dev libnetcdf-dev linux-libc-dev autoconf perl
+
+      - name: Initialize vcpkg
+        run: |
+          git clone https://github.com/Microsoft/vcpkg.git vendor/vcpkg
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Create virtual environment
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install wheel setuptools cibuildwheel 
+          python -m pip install -r requirements.txt
+
+      - name: Bootstrap vcpkg
+        run: ${{ env.VCPKG_ROOT }}/bootstrap-vcpkg.sh -disableMetrics
+
+      - name: Install vcpkg dependencies
+        run: |
+          ${{ env.VCPKG_ROOT }}/vcpkg install
+
+      - name: Last build environment setup steps
+        run: |
+          source .venv/bin/activate
+          python automations/my_automator.py setup dev-env
+
+      - name: Build C extension
+        run: |
+          source .venv/bin/activate
+          python automations/my_automator.py setup dev-env
+          cibuildwheel .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PyMOL-wheel-GNU-Linux-3.11
+          path: ./wheelhouse/*.whl
+  # --- end

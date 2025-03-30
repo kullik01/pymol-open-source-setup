@@ -4,6 +4,8 @@ import pathlib
 import toml
 from cx_Freeze import setup
 
+from automations.const import OS_SPECIFIC_DIR
+
 # <editor-fold desc="Module constants">
 tmp_pyproject_toml = toml.load("../pyproject.toml")
 PROJECT_NAME = tmp_pyproject_toml["project"]["name"]
@@ -51,7 +53,7 @@ setup(
       "target_name": "PyMOL",
       "script": pathlib.Path(PYMOL_PACKAGE_DIR / "startup_wrapper.py"),
       "base": "gui",
-      "icon": pathlib.Path(PROJECT_ROOT_DIR / "alternative_design/icon.icns"),
+      "icon": pathlib.Path(OS_SPECIFIC_DIR / "icon.icns"),
     }
   ],
 )

@@ -1,0 +1,290 @@
+{% extends "overrides/main-styles.html" %}
+
+<!-- Render hero under tabs -->
+{% block tabs %}
+{{ super() }}
+
+<!-- Hero for landing page -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var button = document.getElementById('install-button');
+    var os = navigator.platform.toLowerCase();
+
+    if (os.indexOf('win') !== -1) {
+      button.onclick = function() {
+        location.href = './install_windows.html';
+      };
+      button.innerText = 'Install for Windows';
+    } else if (os.indexOf('mac') !== -1) {
+      button.onclick = function() {
+        location.href = './install_mac.html';
+      };
+      button.innerText = 'Install for macOS';
+    } else if (os.indexOf('linux') !== -1) {
+      button.onclick = function() {
+        location.href = './install_linux.html';
+      };
+      button.innerText = 'Install for Linux';
+    } else {
+      button.onclick = function() {
+        alert('Unsupported OS');
+      };
+      button.innerText = 'Install';
+    }
+  });
+</script>
+
+<!--Open-Source PyMOL documetation-->
+<section class="first-gradiant-body w-100">
+  <div class="md-grid conteiner-row pt-1 pt-lg-5 my-4">
+    <div class="px-3 ctx-header-text conteiner">
+      <div class="conteiner-row">
+        <p class="h1 text-xs-center white-font-bold">Open-Source PyMOL</p>
+      </div>
+      <img src="assets/images/logo.png" class="laverage-header-img d-lg-none d-xl-none mx-auto mb-5" />
+      <p class="h3 text-xs-center white-font-color">
+        <br>
+        PyMOL(TM) is a molecular graphics system with an embedded Python interpreter designed for real-time visualization and rapid generation of high-quality molecular graphics images and animations. It can also perform many other valuable tasks (such as editing PDB files) to assist you in your research. PyMOL is a USER-SPONSORED molecular visualization system on an OPEN-SOURCE foundation.
+      </p>
+      <p class="h3 text-xs-center white-font-color">
+        <br>
+        Available for <b>Windows</b>, <b>macOS</b> and <b>Linux</b>.
+      </p>
+      <div class="conteiner-row conteiner-xs">
+        <button
+          id="install-button"
+          type="button"
+          title="{{ page.next_page.title | e }}"
+          onclick="location.href='./install.html'"
+          class="btn-dark btn-xl-large btn-lg-large mx-3-custom mt-3 my-md-5 my-lg-5 my-xl-5 box-shadow"
+        >
+            Install Now
+        </button>
+        <button
+                type="button"
+                title="{{ page.next_page.title | e }}"
+                onclick="location.href='./install.html'"
+                class="btn-light btn-xl-large btn-lg-large mx-3-custom mt-3 my-md-5 my-lg-5 my-xl-5 box-shadow"
+        >
+          Other Platforms
+        </button>
+      </div>
+    </div>
+    <div class="ctx-header-img d-lg">
+      <img src="assets/images/logo.png" class="laverage-header-img mx-lg-5" />
+    </div>
+  </div>
+
+</section>
+
+<section class="second-gradiant-body w-100">
+  <!--We ship it. You own it-->
+<!--  <div class="md-grid conteiner-row pt-4 my-4">-->
+<!--    <div class="card-white py-3 mx-xs-3 mx-sm-3 mx-4 mx-xl-0 ">-->
+<!--      <div class="conteiner-row">-->
+<!--        <div class="conteiner ctx-card-white-1 pt-4">-->
+<!--          <div class="d-sm text-align-center">-->
+<!--            <p class="display-3 Telegraf-UltraBold text-dark mx-auto mt-4">We ship it.</p>-->
+<!--            <p class="display-3 Telegraf-UltraBold text-pink mx-auto my-4">You own it.</p>-->
+<!--          </div>-->
+<!--          <div class="d-sm-none d-md-none d-lg-none d-xl-none text-align-center">-->
+<!--            <p class="display-4 Telegraf-UltraBold text-dark mx-auto mt-4">We ship it.</p>-->
+<!--            <p class="display-4 Telegraf-UltraBold text-pink mx-auto my-4">You own it.</p>-->
+<!--          </div>-->
+
+<!--          <div class="conteiner ctx-card-white-1 text-dark h3 d-lg-none d-xl-none my-xs-5 my-sm-5 my-md-5">-->
+<!--            <ul class="ul-home mx-xs-auto mx-sm-auto mx-md-auto my-xs-5 my-sm-5 my-md-5">-->
+<!--              <li>- Own your AWS infrastructure</li>-->
+<!--              <li>- Implement, reuse and scale faster</li>-->
+<!--              <li>- Bootstrap your AWS Landing Zone</li>-->
+<!--              <li>- Proven libraries and modules</li>-->
+<!--              <li>- Modern Terraform, Ansible, Helm, K8s Stack</li>-->
+<!--              <li>- Optimize your cloud costs by design</li>-->
+<!--              <li>- Secure your cloud assets and production workloads</li>-->
+<!--              <li>- Achieve compliance in AWS</li>-->
+<!--            </ul>-->
+<!--          </div>-->
+
+<!--          <button-->
+<!--            onclick="window.open('https://github.com/binbashar', '_blank')"-->
+<!--            title="{{ lang.t('source.link.title') }}"-->
+<!--            type="button"-->
+<!--            class="btn-white btn-xl-large btn-lg-large box-shadow mx-auto my-4"-->
+<!--          >-->
+<!--            Contribute on GitHub-->
+<!--          </button>-->
+<!--        </div>-->
+<!--        <div class="conteiner ctx-card-white-1 text-dark h3 d-lg">-->
+<!--          <ul>-->
+<!--            <li>- Own your AWS infrastructure</li>-->
+<!--            <li>- Implement, reuse and scale faster</li>-->
+<!--            <li>- Bootstrap your AWS Landing Zone</li>-->
+<!--            <li>- Proven libraries and modules</li>-->
+<!--            <li>- Modern Terraform, Ansible, Helm, K8s Stack</li>-->
+<!--            <li>- Optimize your cloud costs by design</li>-->
+<!--            <li>- Secure your cloud assets and production workloads</li>-->
+<!--            <li>- Achieve compliance in AWS</li>-->
+<!--          </ul>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+
+  <!--Whats is Open-Source PyMOL-->
+  <div class="conteiner-row-lg conteiner-row-xl conteiner py-5 my-5">
+    <div class="conteiner" style="order:0; flex: 50%;">
+      <div class="conteiner ctx-what-is mx-auto">
+        <img src="assets/images/main_window.png" class="laverage-mac-img my-xs-5 my-sm-5 my-md-5" />
+        <span class="display-4 text-dark Telegraf-UltraBold mt-4 text-align-center">What is Open-Source PyMOL?</span>
+        <div class="conteiner text-dark h3 text-align-start text-end-lg my-xs-5 my-sm-5 my-md-5">
+          <p class="my-3">
+            <img src="assets/icons/check.svg" class="mx-2" width="20px" height="20px"/>
+            <b>Ray-Tracing for Photorealistic Molecular Visualization</b>
+            Unlock unparalleled clarity with PyMOL’s advanced ray-tracing engine, designed to generate stunning, publication-ready 3D renderings. Showcase intricate molecular details—from electrostatic surfaces to binding pockets—with lifelike lighting, shadows, and depth, ensuring your visuals stand out in high-impact journals and presentations.
+          </p>
+          <p class="my-3">
+            <img src="assets/icons/check.svg" class="mx-2" width="20px" height="20px"/>
+            <b>Seamless Export of Publication-Quality Imagery</b>
+            Streamline your workflow with one-click presets and customizable export options tailored to journal requirements. PyMOL delivers ultra-high-resolution images with anti-aliasing, and transparency controls, guaranteeing crisp, print-perfect figures for manuscripts, grants, and posters.
+          </p>
+          <p class="my-3">
+            <img src="assets/icons/check.svg" class="mx-2" width="20px" height="20px"/>
+            <b>Create Dynamic Molecular Movies to Captivate Audiences</b>
+            Turn complex data into engaging narratives using PyMOL’s intuitive animation tools. Craft smooth, cinematic movies of conformational changes, protein-ligand interactions, or dynamic processes—all exportable in MP4, GIF, or interactive formats. Perfect for enhancing publications, conference talks, or educational content with motion-driven storytelling.
+          </p>
+        </div>
+      </div>
+    </div>
+<!--    <div class="conteiner" style="order:1; flex: 50%; overflow:hidden;">-->
+<!--      <img src="assets/images/main_window.png" class="laverage-mac-img my-xs-5 my-sm-5 my-md-5" />-->
+<!--    </div>-->
+  </div>
+</section>
+
+<!--Why Open-Source PyMOL-->
+<section class="white-body w-100">
+  <div class="conteiner py-2 my-5">
+    <div class="conteiner-row">
+      <div style="order:0; flex: 60%;">
+        <img src="assets/images/image_1.png" class="laverage-mac2-img" />
+      </div>
+      <div style="order:0; flex: 40%;" class="d-lg">
+        <div class="card-rainbow third-gradiant-body px-5 py-4" style="order:1; flex: 100%;">
+          <div class="conteiner ctx-card-white-1 text-dark h3">
+            <p class="my-3">
+              <img src="assets/icons/check.svg" width="20px" height="20px"/>
+              Export print-perfect figures effortlessly: customize transparency, resolution, and formats to meet exact publication standards, saving you hours of post-processing.
+            </p>
+            <p class="my-3">
+              <img src="assets/icons/check.svg" width="20px" height="20px"/>
+              Generate high-resolution imagery in one click, optimized for journal submissions, grants, and presentations with anti-aliasing and vector-graphic precision.
+            </p>
+            <p class="my-3">
+              <img src="assets/icons/check.svg" width="20px" height="20px"/>
+              Trusted by researchers worldwide, PyMOL delivers precision and flexibility for creating publication-ready graphics without compromising on speed or quality.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="conteiner py-2 my-5">
+    <div class="conteiner-row">
+      <div style="order:0; flex: 40%;" class="d-lg">
+        <div class="card-rainbow-left third-gradiant-body px-5 py-4" style="order:1; flex: 100%;">
+          <div class="conteiner ctx-card-white-1 text-dark h3">
+            <p class="my-3">
+              <img src="assets/icons/check.svg" width="20px" height="20px"/>
+              Accelerate research with real-time 3D visualization and an embedded Python interpreter, designed for seamless analysis and dynamic molecular exploration.
+            </p>
+            <p class="my-3">
+              <img src="assets/icons/check.svg" width="20px" height="20px"/>
+              Transform complex molecular data into stunning visuals with PyMOL’s industry-leading ray-tracing engine—craft photorealistic renderings that captivate journals and audiences alike.
+            </p>
+            <p class="my-3">
+              <img src="assets/icons/check.svg" width="20px" height="20px"/>
+              Unlock unmatched versatility—combine cutting-edge visualization with Python scripting to automate tasks, refine data, and push the boundaries of molecular discovery.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div style="order:0; flex: 60%;">
+        <img src="assets/images/image_2.png" class="laverage-mac2-img-right" />
+      </div>
+    </div>
+  </div>
+  <div class="conteiner py-2 my-5">
+    <div class="conteiner-row">
+      <div style="order:0; flex: 60%;">
+        <img src="assets/images/image_3.png" class="laverage-mac2-img" />
+      </div>
+      <div style="order:0; flex: 40%;" class="d-lg">
+        <div class="card-rainbow third-gradiant-body px-5 py-4" style="order:1; flex: 100%;">
+          <div class="conteiner ctx-card-white-1 text-dark h3">
+            <p class="my-3">
+              <img src="assets/icons/check.svg" width="20px" height="20px"/>
+              Reveal hidden molecular intricacies—from binding pockets to electrostatic surfaces—with lifelike lighting, shadows, and depth that set your work apart.
+            </p>
+            <p class="my-3">
+              <img src="assets/icons/check.svg" width="20px" height="20px"/>
+              Simplify PDB file editing and workflow efficiency with PyMOL’s versatile toolkit, engineered to support every stage of your research journey.
+            </p>
+            <p class="my-3">
+              <img src="assets/icons/check.svg" width="20px" height="20px"/>
+              Elevate your scientific storytelling with cinematic animations and interactive models, ideal for presentations that demand clarity and impact.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--Our tech stack-->
+<section class="white-body w-100">
+  <div class="md-grid conteiner pt-5  my-0 my-xl-4 my-lg-4">
+<!--    <p class="display-3 text-dark Telegraf-UltraBold mt-4 text-align-center text-start-xl text-start-lg">Software Architecture</p>-->
+<!--    <img src="assets/images/architecture.png" class="mx-auto my-5" width="80%"/>-->
+    <div class="conteiner conteiner-row-lg conteiner-row-xl my-4">
+      <div class="text-dark h3 mx-4 my-3 mx-lg-0 my-xl-0 mx-lg-0 my-xl-0" style="order:0; flex: 50%;">
+        <p>Explore the capabilities of PyMOL through concise, actionable tutorials. We recommend the instructional YouTube series
+          <a href="https://www.youtube.com/watch?v=mBlMI82JRfI&list=PLUMhYZpMLtal_Z7to3by2ATHP-cI4ma5X" target="_blank" rel="noopener noreferrer" style="color: #990033; text-decoration: underline;">PyMOL Tutorials</a>
+          by
+          <a href="https://www.youtube.com/@MolecularMemory" target="_blank" rel="noopener noreferrer" style="color: #990033; text-decoration: underline;">Molecular Memory</a>,
+          designed to help researchers.
+        </p>
+      </div>
+      <div style="order:0; flex: 50%;">
+        <button
+          onclick="location.href='https://www.youtube.com/watch?v=mBlMI82JRfI&list=PLUMhYZpMLtal_Z7to3by2ATHP-cI4ma5X'"
+          title="{{ page.next_page.title | e }}"
+          type="button"
+          class="btn-dark btn-xl-large btn-lg-large my-4 box-shadow mx-auto"
+        >
+          Watch First Video
+        </button>
+      </div>
+    </div>
+    <!--    <img src="/assets/images/diagrams/AWS-ORGANIZATION.png" class="mx-auto mt-5 mb-3 d-sm" width="100%"/>-->
+<!--    <img src="assets/images/diagrams/ref-architecture-aws.png" class="mx-auto mt-5 mb-3 d-sm" width="100%"/>-->
+<!--    <img src="assets/images/diagrams/diagrama-organization-binbash.png" class="mx-auto mt-5 d-sm-none d-md-none d-lg-none d-xl-none" width="100%"/>-->
+<!--    <div class="conteiner-row my-0 my-xl-4 my-lg-4 stack-tenology-gradient">-->
+<!--      <img src="assets/images/logos/stack-tecnologico-2.svg" class="mx-auto py-3" width="60%"/>-->
+<!--    </div>-->
+  </div>
+</section>
+
+<!--Footer-->
+<footer class="bg-dark w-100">
+  <div class="md-grid conteiner-row-xl conteiner-row-lg conteiner my-4">
+    <div class="conteiner-row" style="flex:50%">
+      <div class="text-white md-copyright">
+        Copyright © 2025 Open-Source PyMOL - Schrodinger, LLC (Website & Setup - Martin Urban & Hannah Kullik)<br>
+        Made with Material for MkDocs
+      </div>
+    </div>
+  </div>
+</footer>
+<!--</footer>-->
+
+{% endblock %}

@@ -1,0 +1,47 @@
+site_name: Open-Source PyMOL
+site_url: https://mydomain.org/mysite
+nav:
+    - Home: index.md
+    - Install: install.md
+    - Manual: manual.md
+    - Wiki: https://pymolwiki.org/index.php/Main_Page
+    - About: about.md
+
+theme:
+    name: material
+    custom_dir: material
+    language: en
+    logo: assets/images/logo.png
+    favicon: assets/images/logo.png
+    font:
+        text: Roboto
+        code: Roboto Mono
+    palette:
+        primary: custom
+    features:
+        - navigation.tabs
+        - navigation.instant
+            - navigation.instant.progress
+        - toc.integrate
+extra_css:
+    - stylesheets/extra.css
+
+plugins:
+    - offline
+
+markdown_extensions:
+    - attr_list
+    - pymdownx.emoji:
+        emoji_index: !!python/name:material.extensions.emoji.twemoji
+        emoji_generator: !!python/name:material.extensions.emoji.to_svg
+        options:
+          custom_icons:
+            - overrides/.icons
+    - md_in_html
+    - admonition
+    - pymdownx.details
+    - pymdownx.superfences
+
+
+copyright:
+    Copyright © 2025 Open-Source PyMOL - Schrodinger, LLC (Website & Setup - Martin Urban & Hannah Kullik)

@@ -109,13 +109,13 @@ jobs:
           ./automator.sh build app
 
       - name: Rename app package
-        run: mv dist/open_source_pymol-3.1.0a0.app dist/Open-Source-PyMOL-3.1.0a0.app
+        run: mv build/open_source_pymol-3.1.0.4.app dist/Open-Source-PyMOL-3.1.0.4.app
 
       - name: Build DMG
         uses: urban233/create-dmg-actions@v0.0.2
         with:
           dmg_name: 'Open-Source-PyMOL'
-          src_dir: 'dist/Open-Source-PyMOL-3.1.0a0.app'
+          src_dir: 'dist/Open-Source-PyMOL-3.1.0.4.app'
           bg_filepath: 'os_specific/macos/dmg/bg.png'
 
       - name: Upload artifact

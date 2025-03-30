@@ -4,7 +4,6 @@ import pathlib
 import toml
 from cx_Freeze import setup
 
-from automations.const import OS_SPECIFIC_DIR
 
 # <editor-fold desc="Module constants">
 PROJECT_ROOT_DIR = pathlib.Path(__file__).parent.parent.parent
@@ -55,7 +54,7 @@ setup(
       "target_name": "PyMOL",
       "script": pathlib.Path(PYMOL_PACKAGE_DIR / "startup_wrapper.py"),
       "base": "gui",
-      "icon": pathlib.Path(OS_SPECIFIC_DIR / "icon.icns"),
+      "icon": pathlib.Path(PROJECT_ROOT_DIR / "os_specific/macos" / "icon.icns"),
     }
   ],
 )

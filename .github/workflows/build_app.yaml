@@ -105,6 +105,7 @@ jobs:
 
       - name: Build app package
         run: |
+          chmod +x ./automator.sh 
           ./automator.sh build app
 
       - name: Rename app package

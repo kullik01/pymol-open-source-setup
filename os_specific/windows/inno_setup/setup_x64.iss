@@ -21,14 +21,13 @@ OutputBaseFilename=PyMOL_Open_source_v3.1.0a0_WINx64_setup
 DisableDirPage=True
 DisableProgramGroupPage=True
 DisableReadyPage=True
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesInstallIn64BitMode=x64os
 WizardStyle=modern
 UninstallDisplayName=PyMOL-open-source
 UninstallDisplayIcon={app}\assets\logo.ico
 LicenseFile=LICENSE.txt
 ; This is necessary if the setup will exceed 2 GB
 DiskSpanning=no
-; DiskSliceSize=2100000000
 PrivilegesRequired=none
 
 [Languages]

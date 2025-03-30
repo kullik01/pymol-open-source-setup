@@ -64,13 +64,18 @@ jobs:
 
       - name: Compile .iss file
         run: |
-          iscc os_specific/windows/inno_setup/setup.iss
+          iscc os_specific/windows/inno_setup/setup_${{ matrix.win_arch }}.iss
+
+      - name: Create portable installation
+        run: |
+          Compress-Archive -Path ./dist/exe.win-amd64-3.11/* -DestinationPath ./os_specific/dist/PyMOL_Open_source_v3.1.0a0_${{ matrix.win_arch }}_portable.zip
+        shell: powershell
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: Open-Source-PyMOL-Windows-${{ matrix.win_arch }}-Setup
-          path: ./dist/*.exe
+          path: ./os_specific/dist/*
   # --- end
 
   # ----- macOS build section
@@ -110,7 +115,7 @@ jobs:
         with:
           dmg_name: 'Open-Source-PyMOL'
           src_dir: 'dist/Open-Source-PyMOL-3.1.0a0.app'
-          bg_filepath: 'os_specific/macos/dmg_bg.png'
+          bg_filepath: 'os_specific/macos/dmg/bg.png'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

@@ -40,7 +40,7 @@ jobs:
           python -m venv .venv
           call .venv\Scripts\activate.bat
           python -m pip install --upgrade setuptools pip build 
-          python -m pip install -r requirements.txt
+          python -m pip install -r ./os_specific/windows/requirements.txt
         shell: cmd
 
       - name: Download Inno Setup installer
@@ -101,7 +101,7 @@ jobs:
           python -m venv .venv
           source .venv/bin/activate
           python -m pip install wheel setuptools 
-          python -m pip install -r requirements.txt
+          python -m pip install -r ./os_specific/macos/requirements.txt
 
       - name: Build app package
         run: |
@@ -143,7 +143,7 @@ jobs:
           python -m venv .venv
           source .venv/bin/activate
           python -m pip install wheel setuptools 
-          python -m pip install -r requirements.txt
+          python -m pip install -r ./os_specific/linux/requirements.txt
 
       - name: Build app package
         run: |

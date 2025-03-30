@@ -96,5 +96,5 @@ class BuildExe:
 
 def build() -> None:
   """Builds the EXE file but based on the setup.py for cx_freeze."""
-  tmp_build_macos_exe = BuildExe()
-  tmp_build_macos_exe.setup_based_build()
+  tmp_builder = BuildExe()
+  tmp_builder.setup_based_build()

@@ -75,7 +75,9 @@ elif __APPLE__:
     PROJECT_ROOT_DIR / "os_specific/macos"
   )
 elif __linux__:
-  PYMOL_PACKAGE_DIR = "No path set!"  # TODO: Add the correct path
+  PYMOL_PACKAGE_DIR = pathlib.Path(
+    PROJECT_ROOT_DIR / f".venv/lib/python{PYTHON_VERSION}/site-packages/pymol"
+  )
   OS_SPECIFIC_DIR = pathlib.Path(
     PROJECT_ROOT_DIR / "os_specific/linux"
   )

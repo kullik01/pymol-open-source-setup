@@ -2,7 +2,11 @@ site_name: Open-Source PyMOL
 site_url: https://mydomain.org/mysite
 nav:
     - Home: index.md
-    - Install: install.md
+    - Install:
+          - Download: install.md
+          - Install Windows: install_windows.md
+          - Install macOS: install_macos.md
+          - Install Linux: install_linux.md
     - Manual: manual.md
     - Wiki: https://pymolwiki.org/index.php/Main_Page
     - About: about.md

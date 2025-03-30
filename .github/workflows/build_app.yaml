@@ -159,16 +159,19 @@ jobs:
           tar czvf packaged/bin/Open-Source-PyMOL-3.1.0.4.tar.gz packaged/build/Open-Source-PyMOL-3.1.0.4
           rm -r packaged/build
 
-      - name: Build .deb package
+      - name: Prepare packaging environment
         run: |
-          gem install fpm
+          sudo apt install rpm -y
+          sudo gem install fpm
           mkdir -p package-root/opt/Open-Source-PyMOL-3.1.0.4
           cp -r ./dist/exe.linux*/* package-root/opt/Open-Source-PyMOL-3.1.0.4/
           mkdir -p package-root/usr/bin
           ln -s /opt/Open-Source-PyMOL-3.1.0.4/Open-Source-PyMOL package-root/usr/bin/Open-Source-PyMOL
           mkdir -p package-root/usr/share/applications
-          cp os_specific/linux/open-source-pymol.desktop package-root/usr/share/applications 
-          
+          cp os_specific/linux/open-source-pymol.desktop package-root/usr/share/applications
+
+      - name: Build .deb package
+        run: |
           fpm -s dir -t deb \
           -n open-source-pymol \
           -v 3.1.0.4 \
@@ -178,6 +181,18 @@ jobs:
           --license "BSD-3-Clause" \
           --maintainer "Martin Urban <martin.urban@studmail.w-hs.de>"
           cp open-source-pymol-3.1.0.4_amd64.deb ./packaged/bin/open-source-pymol-3.1.0.4_amd64.deb 
+
+      - name: Build .rpm package
+        run: |
+          fpm -s dir -t rpm \
+          -n open-source-pymol \
+          -v 3.1.0.4 \
+          -a amd64 \
+          -C package-root \
+          --description "PyMOL installation for red-hat-based distros" \
+          --license "BSD-3-Clause" \
+          --maintainer "Martin Urban <martin.urban@studmail.w-hs.de>"
+          cp open-source-pymol-3.1.0.4_amd64.rpm ./packaged/bin/open-source-pymol-3.1.0.4_amd64.rpm 
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

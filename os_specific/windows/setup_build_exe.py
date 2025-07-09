@@ -24,6 +24,7 @@ build_exe_options = {
     "copy",
     "encodings",
     "PyQt5.uic",
+    "pymol.vfont",
     "pymol.povray",
     "pymol.parser",
     "uuid"

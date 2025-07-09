@@ -14,7 +14,11 @@
 #Z* -------------------------------------------------------------------
 name: Build app packages
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
+      - main
 
 jobs:
   # ----- Windows build section
@@ -83,7 +87,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ macos-13, macos-14 ]
+        # macos-13 is unsupported due to a bug in the `create-dmg` action
+        os: [ macos-14 ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository

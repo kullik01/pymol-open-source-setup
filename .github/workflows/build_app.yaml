@@ -72,7 +72,7 @@ jobs:
 
       - name: Create portable installation
         run: |
-          Compress-Archive -Path ./dist/exe.win-amd64-3.11/* -DestinationPath ./os_specific/dist/PyMOL_Open_source_v3.1.0a0_${{ matrix.win_arch }}_portable.zip
+          Compress-Archive -Path ./dist/exe.win-amd64-3.11/* -DestinationPath ./os_specific/dist/PyMOL_Open_source_v3.1.0.4+1_${{ matrix.win_arch }}_portable.zip
         shell: powershell
 
       - name: Upload artifact
@@ -114,7 +114,7 @@ jobs:
           ./automator.sh build app
 
       - name: Rename app package
-        run: mv os_specific/macos/build/open_source_pymol-3.1.0.4.app dist/Open-Source-PyMOL-3.1.0.4.app
+        run: mv os_specific/macos/build/open_source_pymol-3.1.0.4+1.app dist/Open-Source-PyMOL-3.1.0.4+1.app
 
       - name: Ensure no other process is using the DMG
         run: |
@@ -124,7 +124,7 @@ jobs:
         uses: urban233/create-dmg-actions@v0.0.2
         with:
           dmg_name: 'Open-Source-PyMOL'
-          src_dir: 'dist/Open-Source-PyMOL-3.1.0.4.app'
+          src_dir: 'dist/Open-Source-PyMOL-3.1.0.4+1.app'
           bg_filepath: 'os_specific/macos/dmg/bg.png'
         env:
           RETRIES: 3
@@ -165,20 +165,20 @@ jobs:
 
       - name: Build tar.gz portable installation
         run: |
-          mkdir -p packaged/build/Open-Source-PyMOL-3.1.0.4
-          cp -r ./dist/exe.linux*/* packaged/build/Open-Source-PyMOL-3.1.0.4/
+          mkdir -p packaged/build/Open-Source-PyMOL-3.1.0.4+1
+          cp -r ./dist/exe.linux*/* packaged/build/Open-Source-PyMOL-3.1.0.4+1/
           mkdir -p packaged/bin
-          tar czvf packaged/bin/Open-Source-PyMOL-3.1.0.4.tar.gz packaged/build/Open-Source-PyMOL-3.1.0.4 
+          tar czvf packaged/bin/Open-Source-PyMOL-3.1.0.4+1.tar.gz packaged/build/Open-Source-PyMOL-3.1.0.4+1 
           rm -r packaged/build
 
       - name: Prepare packaging environment
         run: |
           sudo apt install rpm -y
           sudo gem install fpm
-          mkdir -p package-root/opt/Open-Source-PyMOL-3.1.0.4
-          cp -r ./dist/exe.linux*/* package-root/opt/Open-Source-PyMOL-3.1.0.4/
+          mkdir -p package-root/opt/Open-Source-PyMOL-3.1.0.4+1
+          cp -r ./dist/exe.linux*/* package-root/opt/Open-Source-PyMOL-3.1.0.4+1/
           mkdir -p package-root/usr/bin
-          ln -s /opt/Open-Source-PyMOL-3.1.0.4/Open-Source-PyMOL package-root/usr/bin/Open-Source-PyMOL
+          ln -s /opt/Open-Source-PyMOL-3.1.0.4+1/Open-Source-PyMOL package-root/usr/bin/Open-Source-PyMOL
           mkdir -p package-root/usr/share/applications
           cp os_specific/linux/open-source-pymol.desktop package-root/usr/share/applications
 
@@ -186,7 +186,7 @@ jobs:
         run: |
           fpm -s dir -t deb \
           -n open-source-pymol \
-          -v 3.1.0.4 \
+          -v 3.1.0.4+1 \
           -a amd64 \
           -C package-root \
           --description "PyMOL installation for debian-based distros" \
@@ -197,7 +197,7 @@ jobs:
         run: |
           fpm -s dir -t rpm \
           -n open-source-pymol \
-          -v 3.1.0.4 \
+          -v 3.1.0.4+1 \
           -a amd64 \
           -C package-root \
           --description "PyMOL installation for red-hat-based distros" \

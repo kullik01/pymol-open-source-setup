@@ -174,3 +174,5 @@ cython_debug/
 .pypirc
 /inno-build-release/
 /pre-built/
+
+docs/website/static/

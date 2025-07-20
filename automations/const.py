@@ -67,6 +67,9 @@ if WIN32:
   OS_SPECIFIC_DIR = pathlib.Path(
     PROJECT_ROOT_DIR / "os_specific/windows"
   )
+  OS_SPECIFIC_SETUP_BUILD_EXE = pathlib.Path(
+    OS_SPECIFIC_DIR, "setup_build_exe.py"
+  )
 elif __APPLE__:
   PYMOL_PACKAGE_DIR = pathlib.Path(
     PROJECT_ROOT_DIR / f".venv/lib/python{PYTHON_VERSION}/site-packages/pymol"
@@ -74,10 +77,16 @@ elif __APPLE__:
   OS_SPECIFIC_DIR = pathlib.Path(
     PROJECT_ROOT_DIR / "os_specific/macos"
   )
+  OS_SPECIFIC_SETUP_BUILD_EXE = pathlib.Path(
+    OS_SPECIFIC_DIR, "setup_build_exe.py"
+  )
 elif __linux__:
   PYMOL_PACKAGE_DIR = pathlib.Path(
     PROJECT_ROOT_DIR / f".venv/lib/python{PYTHON_VERSION}/site-packages/pymol"
   )
   OS_SPECIFIC_DIR = pathlib.Path(
     PROJECT_ROOT_DIR / "os_specific/linux"
+  )
+  OS_SPECIFIC_SETUP_BUILD_EXE = pathlib.Path(
+    OS_SPECIFIC_DIR, "setup_build_exe.py"
   )

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://mydomain.org/mysite/index.html</loc>
+         <lastmod>2025-07-21</lastmod>
+    </url>
+    <url>
+         <loc>https://mydomain.org/mysite/about.html</loc>
+         <lastmod>2025-07-21</lastmod>
+    </url>
+    <url>
+         <loc>https://mydomain.org/mysite/install.html</loc>
+         <lastmod>2025-07-21</lastmod>
+    </url>
+    <url>
+         <loc>https://mydomain.org/mysite/install_linux.html</loc>
+         <lastmod>2025-07-21</lastmod>
+    </url>
+    <url>
+         <loc>https://mydomain.org/mysite/install_macos.html</loc>
+         <lastmod>2025-07-21</lastmod>
+    </url>
+    <url>
+         <loc>https://mydomain.org/mysite/install_windows.html</loc>
+         <lastmod>2025-07-21</lastmod>
+    </url>
+    <url>
+         <loc>https://mydomain.org/mysite/manual.html</loc>
+         <lastmod>2025-07-21</lastmod>
+    </url>
+</urlset>

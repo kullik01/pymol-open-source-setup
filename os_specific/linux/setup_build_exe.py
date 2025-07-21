@@ -54,17 +54,3 @@ setup(
     }
   ],
 )
-
-
-# <editor-fold desc="Coping Linux build script into the application package">
-# Definition
-tmp_os_specific_build_exe_filepath = pathlib.Path(
-  const.OS_SPECIFIC_SETUP_BUILD_EXE
-)
-
-# Copy
-shutil.copy(
-  tmp_os_specific_build_exe_filepath,
-  pathlib.Path(const.PYMOL_PACKAGE_DIR / "setup_build_exe.py")
-)
-# </editor-fold>

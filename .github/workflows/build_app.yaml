@@ -51,7 +51,7 @@ jobs:
 
       - name: Download Inno Setup installer
         run: |
-          Invoke-WebRequest -Uri https://files.jrsoftware.org/is/6/innosetup-6.4.2.exe -OutFile inno-setup.exe
+          Invoke-WebRequest -Uri https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe -OutFile inno-setup.exe
 
       - name: Install Inno Setup
         run: |

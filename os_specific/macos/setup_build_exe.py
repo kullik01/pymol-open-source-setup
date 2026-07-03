@@ -1,7 +1,9 @@
 import sys
 import pathlib
+import os
 
 import toml
+import certifi
 from cx_Freeze import setup
 
 
@@ -20,6 +22,9 @@ SHARED_SUFFIX = f".cpython-{PYTHON_VERSION.replace('.', '')}-darwin.so"
 # </editor-fold>
 
 
+# Locate the certificate store dynamically from your build environment virtual environment
+cert_path = pathlib.Path(certifi.where())
+
 build_exe_options = {
   "includes": [
     "copy",
@@ -28,13 +33,20 @@ build_exe_options = {
     "pymol.vfont",
     "pymol.povray",
     "pymol.parser",
-    "uuid"
+    "uuid",
+    "ssl",
+    "certifi"
   ],
   "include_files": [
     (
       pathlib.Path(PYMOL_PACKAGE_DIR / f"_cmd{SHARED_SUFFIX}"),
       f"./lib/pymol/_cmd{SHARED_SUFFIX}"
-     )
+    ),
+    # Copy cacert.pem into the root of the app execution directory layout
+    (
+      cert_path,
+      "./cacert.pem"
+    )
   ]
 }
 

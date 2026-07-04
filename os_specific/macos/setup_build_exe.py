@@ -28,13 +28,14 @@ build_exe_options = {
     "pymol.vfont",
     "pymol.povray",
     "pymol.parser",
-    "uuid"
+    "uuid",
+    "ssl"
   ],
   "include_files": [
     (
       pathlib.Path(PYMOL_PACKAGE_DIR / f"_cmd{SHARED_SUFFIX}"),
       f"./lib/pymol/_cmd{SHARED_SUFFIX}"
-     )
+    ),
   ]
 }
 

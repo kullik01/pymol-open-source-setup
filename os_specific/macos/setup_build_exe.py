@@ -1,9 +1,7 @@
 import sys
 import pathlib
-import os
 
 import toml
-import certifi
 from cx_Freeze import setup
 
 

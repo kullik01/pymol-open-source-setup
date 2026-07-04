@@ -114,12 +114,10 @@ jobs:
           chmod +x ./automator.sh 
           ./automator.sh build app
 
-      # ----- ADD THIS STEP TO FIX THE "DAMAGED" ERROR -----
       - name: Ad-hoc Sign App Bundle
         run: |
           echo "Applying ad-hoc signature to prevent Gatekeeper damage errors..."
           codesign --force --deep --sign - os_specific/macos/build/open_source_pymol-3.1.0.4+3.app
-      # ---------------------------------------------------
 
       - name: Rename app package
         run: mv os_specific/macos/build/open_source_pymol-3.1.0.4+3.app dist/Open-Source-PyMOL-3.1.0.4+3.app

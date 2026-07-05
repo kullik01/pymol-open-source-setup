@@ -39,12 +39,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: 'pip'
+          cache-dependency-path: 'os_specific/windows/requirements.txt'
+
+      - name: Extract project version
+        shell: bash
+        run: |
+          python -c "import tomllib; data=tomllib.load(open('pyproject.toml','rb')); print('PROJECT_VERSION='+data['project']['version'])" >> $GITHUB_ENV
 
       - name: Create virtual environment
         run: |
           python -m venv .venv
           call .venv\Scripts\activate.bat
-          python -m pip install --upgrade setuptools pip build 
+          python -m pip install --upgrade setuptools pip build
           python -m pip install -r ./os_specific/windows/requirements.txt
         shell: cmd
 
@@ -69,11 +76,11 @@ jobs:
 
       - name: Compile .iss file
         run: |
-          iscc os_specific/windows/inno_setup/setup_${{ matrix.win_arch }}.iss
+          iscc /DMyAppVersion="${{ env.PROJECT_VERSION }}" os_specific/windows/inno_setup/setup_${{ matrix.win_arch }}.iss
 
       - name: Create portable installation
         run: |
-          Compress-Archive -Path ./dist/exe.win-amd64-3.11/* -DestinationPath ./os_specific/dist/PyMOL_Open_source_v3.1.0.4+3_${{ matrix.win_arch }}_portable.zip
+          Compress-Archive -Path ./dist/exe.win-amd64-3.11/* -DestinationPath ./os_specific/dist/PyMOL_Open_source_v${{ env.PROJECT_VERSION }}_${{ matrix.win_arch }}_portable.zip
         shell: powershell
 
       - name: Upload artifact
@@ -101,26 +108,32 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: 'pip'
+          cache-dependency-path: 'os_specific/macos/requirements.txt'
+
+      - name: Extract project version
+        run: |
+          python -c "import tomllib; data=tomllib.load(open('pyproject.toml','rb')); print('PROJECT_VERSION='+data['project']['version'])" >> $GITHUB_ENV
 
       - name: Create virtual environment
         run: |
           python -m venv .venv
           source .venv/bin/activate
-          python -m pip install wheel setuptools 
+          python -m pip install wheel setuptools
           python -m pip install -r ./os_specific/macos/requirements.txt
 
       - name: Build app package
         run: |
-          chmod +x ./automator.sh 
+          chmod +x ./automator.sh
           ./automator.sh build app
 
       - name: Ad-hoc Sign App Bundle
         run: |
           echo "Applying ad-hoc signature to prevent Gatekeeper damage errors..."
-          codesign --force --deep --sign - os_specific/macos/build/open_source_pymol-3.1.0.4+3.app
+          codesign --force --deep --sign - os_specific/macos/build/open_source_pymol-${{ env.PROJECT_VERSION }}.app
 
       - name: Rename app package
-        run: mv os_specific/macos/build/open_source_pymol-3.1.0.4+3.app dist/Open-Source-PyMOL-3.1.0.4+3.app
+        run: mv os_specific/macos/build/open_source_pymol-${{ env.PROJECT_VERSION }}.app dist/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}.app
 
       - name: Ensure no other process is using the DMG
         run: |
@@ -130,7 +143,7 @@ jobs:
         uses: urban233/create-dmg-actions@v0.0.2
         with:
           dmg_name: 'Open-Source-PyMOL'
-          src_dir: 'dist/Open-Source-PyMOL-3.1.0.4+3.app'
+          src_dir: 'dist/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}.app'
           bg_filepath: 'os_specific/macos/dmg/bg.png'
         env:
           RETRIES: 3
@@ -156,35 +169,41 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: 'pip'
+          cache-dependency-path: 'os_specific/linux/requirements.txt'
+
+      - name: Extract project version
+        run: |
+          python -c "import tomllib; data=tomllib.load(open('pyproject.toml','rb')); print('PROJECT_VERSION='+data['project']['version'])" >> $GITHUB_ENV
 
       - name: Create virtual environment
         run: |
           python -m venv .venv
           source .venv/bin/activate
-          python -m pip install wheel setuptools 
+          python -m pip install wheel setuptools
           python -m pip install -r ./os_specific/linux/requirements.txt
 
       - name: Build app package
         run: |
-          chmod +x ./automator.sh 
+          chmod +x ./automator.sh
           ./automator.sh build app
 
       - name: Build tar.gz portable installation
         run: |
-          mkdir -p packaged/build/Open-Source-PyMOL-3.1.0.4+3
-          cp -r ./dist/exe.linux*/* packaged/build/Open-Source-PyMOL-3.1.0.4+3/
+          mkdir -p packaged/build/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}
+          cp -r ./dist/exe.linux*/* packaged/build/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}/
           mkdir -p packaged/bin
-          tar czvf packaged/bin/Open-Source-PyMOL-3.1.0.4+3.tar.gz packaged/build/Open-Source-PyMOL-3.1.0.4+3 
+          tar czvf packaged/bin/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}.tar.gz packaged/build/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}
           rm -r packaged/build
 
       - name: Prepare packaging environment
         run: |
           sudo apt install rpm -y
           sudo gem install fpm
-          mkdir -p package-root/opt/Open-Source-PyMOL-3.1.0.4+3
-          cp -r ./dist/exe.linux*/* package-root/opt/Open-Source-PyMOL-3.1.0.4+3/
+          mkdir -p package-root/opt/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}
+          cp -r ./dist/exe.linux*/* package-root/opt/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}/
           mkdir -p package-root/usr/bin
-          ln -s /opt/Open-Source-PyMOL-3.1.0.4+3/Open-Source-PyMOL package-root/usr/bin/Open-Source-PyMOL
+          ln -s /opt/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}/Open-Source-PyMOL package-root/usr/bin/Open-Source-PyMOL
           mkdir -p package-root/usr/share/applications
           cp os_specific/linux/open-source-pymol.desktop package-root/usr/share/applications
 
@@ -192,23 +211,23 @@ jobs:
         run: |
           fpm -s dir -t deb \
           -n open-source-pymol \
-          -v 3.1.0.4+3 \
+          -v ${{ env.PROJECT_VERSION }} \
           -a amd64 \
           -C package-root \
           --description "PyMOL installation for debian-based distros" \
           --license "BSD-3-Clause" \
-          --maintainer "Martin Urban <martin.urban@studmail.w-hs.de>" 
+          --maintainer "Martin Urban <martin.urban@studmail.w-hs.de>"
 
       - name: Build .rpm package
         run: |
           fpm -s dir -t rpm \
           -n open-source-pymol \
-          -v 3.1.0.4+3 \
+          -v ${{ env.PROJECT_VERSION }} \
           -a amd64 \
           -C package-root \
           --description "PyMOL installation for red-hat-based distros" \
           --license "BSD-3-Clause" \
-          --maintainer "Martin Urban <martin.urban@studmail.w-hs.de>" 
+          --maintainer "Martin Urban <martin.urban@studmail.w-hs.de>"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

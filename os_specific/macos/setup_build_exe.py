@@ -36,6 +36,14 @@ build_exe_options = {
       pathlib.Path(PYMOL_PACKAGE_DIR / f"_cmd{SHARED_SUFFIX}"),
       f"./lib/pymol/_cmd{SHARED_SUFFIX}"
     ),
+    (
+      pathlib.Path(PYMOL_PACKAGE_DIR / "wizard"),
+      "./lib/pymol/wizard"
+    ),
+    (
+      pathlib.Path(PYMOL_PACKAGE_DIR / "data/startup"),
+      "./lib/pymol/data/startup"
+    ),
   ]
 }
 

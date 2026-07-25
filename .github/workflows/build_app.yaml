@@ -80,13 +80,13 @@ jobs:
 
       - name: Create portable installation
         run: |
-          Compress-Archive -Path ./dist/exe.win-amd64-3.11/* -DestinationPath ./os_specific/dist/PyMOL_Open_source_v${{ env.PROJECT_VERSION }}_${{ matrix.win_arch }}_portable.zip
+          Compress-Archive -Path ./dist/exe.win-amd64-3.11/* -DestinationPath ./os_specific/dist/PyMOL-Open-Source_v${{ env.PROJECT_VERSION }}_${{ matrix.win_arch }}_portable.zip
         shell: powershell
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Open-Source-PyMOL-Windows-${{ matrix.win_arch }}-Setup
+          name: PyMOL-Open-Source-Windows-${{ matrix.win_arch }}-Setup
           path: ./os_specific/dist/*
   # --- end
 
@@ -133,17 +133,17 @@ jobs:
           codesign --force --deep --sign - os_specific/macos/build/open_source_pymol-${{ env.PROJECT_VERSION }}.app
 
       - name: Rename app package
-        run: mv os_specific/macos/build/open_source_pymol-${{ env.PROJECT_VERSION }}.app dist/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}.app
+        run: mv os_specific/macos/build/open_source_pymol-${{ env.PROJECT_VERSION }}.app dist/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}.app
 
       - name: Ensure no other process is using the DMG
         run: |
-          hdiutil detach /Volumes/Open-Source-PyMOL || true
+          hdiutil detach /Volumes/PyMOL-Open-Source || true
 
       - name: Build DMG with retry
         uses: urban233/create-dmg-actions@v0.0.2
         with:
-          dmg_name: 'Open-Source-PyMOL'
-          src_dir: 'dist/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}.app'
+          dmg_name: 'PyMOL-Open-Source_v${{ env.PROJECT_VERSION }}'
+          src_dir: 'dist/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}.app'
           bg_filepath: 'os_specific/macos/dmg/bg.png'
         env:
           RETRIES: 3
@@ -152,7 +152,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Open-Source-PyMOL-macOS-${{ matrix.os }}-Setup
+          name: PyMOL-Open-Source-macOS-${{ matrix.os }}-Setup
           path: ./*.dmg
   # --- end
 
@@ -190,29 +190,31 @@ jobs:
 
       - name: Build tar.gz portable installation
         run: |
-          mkdir -p packaged/build/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}
-          cp -r ./dist/exe.linux*/* packaged/build/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}/
+          mkdir -p packaged/build/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}
+          cp -r ./dist/exe.linux*/* packaged/build/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}/
           mkdir -p packaged/bin
-          tar czvf packaged/bin/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}.tar.gz packaged/build/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}
+          tar czvf packaged/bin/PyMOL-Open-Source_v${{ env.PROJECT_VERSION }}.tar.gz packaged/build/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}
           rm -r packaged/build
 
       - name: Prepare packaging environment
         run: |
           sudo apt install rpm -y
           sudo gem install fpm
-          mkdir -p package-root/opt/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}
-          cp -r ./dist/exe.linux*/* package-root/opt/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}/
+          mkdir -p package-root/opt/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}
+          cp -r ./dist/exe.linux*/* package-root/opt/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}/
           mkdir -p package-root/usr/bin
-          ln -s /opt/Open-Source-PyMOL-${{ env.PROJECT_VERSION }}/Open-Source-PyMOL package-root/usr/bin/Open-Source-PyMOL
+          ln -s /opt/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}/Open-Source-PyMOL package-root/usr/bin/Open-Source-PyMOL
           mkdir -p package-root/usr/share/applications
           cp os_specific/linux/open-source-pymol.desktop package-root/usr/share/applications
+          sed -i "s|/opt/open-source-pymol|/opt/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}|g" package-root/usr/share/applications/open-source-pymol.desktop
 
       - name: Build .deb package
         run: |
           fpm -s dir -t deb \
-          -n open-source-pymol \
+          -n PyMOL-Open-Source \
           -v ${{ env.PROJECT_VERSION }} \
           -a amd64 \
+          -p PyMOL-Open-Source_v${{ env.PROJECT_VERSION }}_amd64.deb \
           -C package-root \
           --description "PyMOL installation for debian-based distros" \
           --license "BSD-3-Clause" \
@@ -221,9 +223,10 @@ jobs:
       - name: Build .rpm package
         run: |
           fpm -s dir -t rpm \
-          -n open-source-pymol \
+          -n PyMOL-Open-Source \
           -v ${{ env.PROJECT_VERSION }} \
           -a amd64 \
+          -p PyMOL-Open-Source_v${{ env.PROJECT_VERSION }}_x86_64.rpm \
           -C package-root \
           --description "PyMOL installation for red-hat-based distros" \
           --license "BSD-3-Clause" \
@@ -232,7 +235,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Open-Source-PyMOL-GNU-Linux-x86_64-Setup
+          name: PyMOL-Open-Source-GNU-Linux-x86_64-Setup
           path: |
             packaged/bin/*.tar.gz
             *.deb

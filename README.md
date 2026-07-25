@@ -75,23 +75,24 @@ chmod +x ./automator.sh && ./automator.sh build app
 ```
 To build the tar.gz run:
 ```shell
-mkdir -p packaged/build/Open-Source-PyMOL-<version-number>
-cp -r ./dist/exe.linux*/* packaged/build/Open-Source-PyMOL-<version-number>/
+mkdir -p packaged/build/PyMOL-Open-Source-<version-number>
+cp -r ./dist/exe.linux*/* packaged/build/PyMOL-Open-Source-<version-number>/
 mkdir -p packaged/bin
-tar czvf packaged/bin/Open-Source-PyMOL-<version-number>.tar.gz packaged/build/Open-Source-PyMOL-<version-number>
+tar czvf packaged/bin/PyMOL-Open-Source_v<version-number>.tar.gz packaged/build/PyMOL-Open-Source-<version-number>
 ```
 If you want to build a .deb or .rpm package, you could use the Ruby gem called fpm:
 ```shell
 sudo gem install fpm
-mkdir -p package-root/opt/Open-Source-PyMOL-<version-number>
-cp -r ./dist/exe.linux*/* package-root/opt/Open-Source-PyMOL-<version-number>/
+mkdir -p package-root/opt/PyMOL-Open-Source-<version-number>
+cp -r ./dist/exe.linux*/* package-root/opt/PyMOL-Open-Source-<version-number>/
 mkdir -p package-root/usr/bin
-ln -s /opt/Open-Source-PyMOL-<version-number>/Open-Source-PyMOL package-root/usr/bin/Open-Source-PyMOL
+ln -s /opt/PyMOL-Open-Source-<version-number>/Open-Source-PyMOL package-root/usr/bin/Open-Source-PyMOL
 mkdir -p package-root/usr/share/applications
 cp os_specific/linux/open-source-pymol.desktop package-root/usr/share/applications
+sed -i "s|/opt/open-source-pymol|/opt/PyMOL-Open-Source-<version-number>|g" package-root/usr/share/applications/open-source-pymol.desktop
 
 fpm -s dir -t deb \
--n open-source-pymol \
+-n PyMOL-Open-Source \
 -v <version-number> \
 -a amd64 \
 -C package-root \

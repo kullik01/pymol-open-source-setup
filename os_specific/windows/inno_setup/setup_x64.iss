@@ -8,13 +8,13 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 WizardImageFile=compiler:WizClassicImage.bmp
 ;WizardImageFile=customInnoSetupImage.bmp
-AppName=PyMOL-open-source
+AppName=PyMOL-Open-Source
 AppVersion={#MyAppVersion}
 AppCopyright=Hannah Kullik, Schrodinger LLC
 AppId={{192F52C3-D86D-4735-9929-C7DF593CB534}
 DefaultDirName={userappdata}\PyMOL-Open-Source
 AppPublisher=Hannah Kullik
-VersionInfoProductName=PyMOL-open-source
+VersionInfoProductName=PyMOL-Open-Source
 MinVersion=10.0.19045
 OutputDir=..\..\dist
 OutputBaseFilename=PyMOL_Open_source_v{#MyAppVersion}_WINx64_setup
@@ -24,7 +24,7 @@ DisableProgramGroupPage=True
 DisableReadyPage=True
 ArchitecturesInstallIn64BitMode=x64os
 WizardStyle=modern
-UninstallDisplayName=PyMOL-open-source
+UninstallDisplayName=PyMOL-Open-Source
 UninstallDisplayIcon={app}\assets\logo.ico
 LicenseFile=LICENSE.txt
 ; This is necessary if the setup will exceed 2 GB

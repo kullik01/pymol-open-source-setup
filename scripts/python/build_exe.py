@@ -114,13 +114,17 @@ if __name__ == '__main__':
   else:
     print("The src/python/pymol directory already exists, that might mean a self compiled _cmd module was built.")
   remove_dist_info_folders(pathlib.Path(f"{tmp_build_exe_path}/lib"))
-  shutil.copytree(
-    str(pathlib.Path(PROJECT_ROOT_DIR / "pymol/pymol/wizard")),
-    str(pathlib.Path(f"{tmp_build_exe_path}/lib/pymol/wizard")),
-    dirs_exist_ok=True
-  )
-  shutil.copytree(
-    str(pathlib.Path(PROJECT_ROOT_DIR / "pymol/pymol/data/startup")),
-    str(pathlib.Path(f"{tmp_build_exe_path}/lib/pymol/data/startup")),
-    dirs_exist_ok=True
-  )
+  wizard_src = pathlib.Path(PROJECT_ROOT_DIR / "src/python/pymol/wizard")
+  if wizard_src.exists():
+    shutil.copytree(
+      str(wizard_src),
+      str(pathlib.Path(f"{tmp_build_exe_path}/lib/pymol/wizard")),
+      dirs_exist_ok=True
+    )
+  startup_src = pathlib.Path(PROJECT_ROOT_DIR / "src/python/pymol/data/startup")
+  if startup_src.exists():
+    shutil.copytree(
+      str(startup_src),
+      str(pathlib.Path(f"{tmp_build_exe_path}/lib/pymol/data/startup")),
+      dirs_exist_ok=True
+    )

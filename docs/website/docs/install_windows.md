@@ -4,11 +4,11 @@ Install location: `C:\Users\%USERNAME%\AppData\Roaming\PyMOL-Open-Source\bin`
 ## Step-by-Step Installation Guide
 For a convenient and user-friendly installation follow these steps (installation should take around **5 minutes**):
 
-1. Download the _PyMOL_Open_source_v3.1.0a0_WINx64_setup.exe_. Click [here](https://github.com/kullik01/PyMOL-open-source-setup/releases) to automatically start the download. The download will take around a minute to download depending on your internet connection.
+1. Download the _PyMOL_Open_source_v3.1.0.4+4_WINx64_setup.exe_. Click [here](https://github.com/kullik01/PyMOL-open-source-setup/releases) to automatically start the download. The download will take around a minute to download depending on your internet connection.
 
 2. After the download finished open a Windows explorer window and navigate to _Downloads_.
 
-3. Double-click on the file **PyMOL_Open_source_v3.1.0a0_WINx64_setup.exe** to start the setup.
+3. Double-click on the file **PyMOL_Open_source_v3.1.0.4+4_WINx64_setup.exe** to start the setup.
     <div id='header' align='center'>
       <img src='assets/images/installation/part_1.png' width='900'/>
     </div>

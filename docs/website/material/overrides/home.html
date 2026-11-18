@@ -17,7 +17,7 @@
       button.innerText = 'Install for Windows';
     } else if (os.indexOf('mac') !== -1) {
       button.onclick = function() {
-        location.href = './install_mac.html';
+        location.href = './install_macos.html';
       };
       button.innerText = 'Install for macOS';
     } else if (os.indexOf('linux') !== -1) {
@@ -26,8 +26,9 @@
       };
       button.innerText = 'Install for Linux';
     } else {
+      // Unknown system (e.g. a phone): show the overview of all platforms
       button.onclick = function() {
-        alert('Unsupported OS');
+        location.href = './install.html';
       };
       button.innerText = 'Install';
     }

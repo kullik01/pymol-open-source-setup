@@ -63,8 +63,8 @@ FPM_ARGS=(
   -s dir
   --version "$VERSION"
   --license "BSD-3-Clause"
-  --maintainer "Martin Urban <martin.urban@studmail.w-hs.de>, Hannah Kullik <hannah.kullik@studmail.w-hs.de>"
-  --vendor "Martin Urban, Hannah Kullik"
+  --maintainer "Hannah Kullik <hannah.kullik@studmail.w-hs.de>, Martin Urban <martin.urban@studmail.w-hs.de>"
+  --vendor "Hannah Kullik, Martin Urban"
   --url "https://kullik01.github.io/pymol-open-source-setup"
   --category science
   --description "Open-Source PyMOL - molecular visualization system (unofficial build)"

@@ -32,6 +32,8 @@ extra_css:
 
 plugins:
     - offline
+    # Version, file names and download links from pyproject.toml, see main.py
+    - macros
 
 markdown_extensions:
     - attr_list

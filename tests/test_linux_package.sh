@@ -12,19 +12,29 @@ TESTS_DIR="$(cd "$(dirname "$0")" && pwd)"
 source /etc/os-release
 echo "=== Testing $(basename "$PACKAGE") on ${PRETTY_NAME}"
 
+# Retries a command, e.g. if a distribution mirror is temporarily out of sync
+retry() {
+  for ATTEMPT in 1 2 3; do
+    "$@" && return 0
+    echo "Attempt ${ATTEMPT} failed: $*" >&2
+    [ "$ATTEMPT" -lt 3 ] && sleep 30
+  done
+  return 1
+}
+
 # Install the package and, for the GUI test, an X server and the Mesa
 # OpenGL drivers (both are part of every desktop installation)
 case " ${ID} ${ID_LIKE:-} " in
   *" debian "*|*" ubuntu "*)
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq
-    apt-get install -y -qq "$PACKAGE" xvfb libgl1-mesa-dri > /dev/null
+    retry apt-get update -qq
+    retry apt-get install -y -qq "$PACKAGE" xvfb libgl1-mesa-dri > /dev/null
     ;;
   *" fedora "*|*" rhel "*)
-    dnf install -y -q "$PACKAGE" xorg-x11-server-Xvfb mesa-dri-drivers
+    retry dnf install -y -q "$PACKAGE" xorg-x11-server-Xvfb mesa-dri-drivers
     ;;
   *" suse "*|*" opensuse "*)
-    zypper --non-interactive --quiet install --allow-unsigned-rpm "$PACKAGE" xorg-x11-server-Xvfb Mesa-dri
+    retry zypper --non-interactive --quiet install --allow-unsigned-rpm "$PACKAGE" xorg-x11-server-Xvfb Mesa-dri
     ;;
   *)
     echo "Unsupported distribution: ${ID}" >&2

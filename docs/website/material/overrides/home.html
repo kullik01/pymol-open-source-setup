@@ -5,32 +5,51 @@
 {{ super() }}
 
 <!-- Hero for landing page -->
+<style>
+  #install-button:disabled,
+  #install-button:disabled:hover {
+    background-color: #000000;
+    border: solid #000 2px;
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
 <script>
+  // Shows the installation guide of the visitor's operating system.
+  // Supported: Windows, macOS and Linux (x86_64); phones and tablets are not.
   document.addEventListener('DOMContentLoaded', function() {
     var button = document.getElementById('install-button');
-    var os = navigator.platform.toLowerCase();
+    var platform = navigator.platform.toLowerCase();
+    var userAgent = navigator.userAgent.toLowerCase();
+    // iPadOS reports "MacIntel" like a Mac, but has a touch screen
+    var isMobile = /android|iphone|ipad|ipod/.test(userAgent)
+      || (platform === 'macintel' && navigator.maxTouchPoints > 1);
+    var guide = null;
+    var label = '';
 
-    if (os.indexOf('win') !== -1) {
+    if (isMobile) {
+      guide = null;
+    } else if (platform.indexOf('win') !== -1) {
+      guide = './install_windows.html';
+      label = 'Install for Windows';
+    } else if (platform.indexOf('mac') !== -1) {
+      guide = './install_macos.html';
+      label = 'Install for macOS';
+    } else if (platform.indexOf('linux') !== -1 && !/arm|aarch64/.test(platform)) {
+      guide = './install_linux.html';
+      label = 'Install for Linux';
+    }
+
+    if (guide) {
       button.onclick = function() {
-        location.href = './install_windows.html';
+        location.href = guide;
       };
-      button.innerText = 'Install for Windows';
-    } else if (os.indexOf('mac') !== -1) {
-      button.onclick = function() {
-        location.href = './install_macos.html';
-      };
-      button.innerText = 'Install for macOS';
-    } else if (os.indexOf('linux') !== -1) {
-      button.onclick = function() {
-        location.href = './install_linux.html';
-      };
-      button.innerText = 'Install for Linux';
+      button.innerText = label;
     } else {
-      // Unknown system (e.g. a phone): show the overview of all platforms
-      button.onclick = function() {
-        location.href = './install.html';
-      };
-      button.innerText = 'Install';
+      // Unsupported device; the "Other Platforms" button still shows the overview
+      button.disabled = true;
+      button.innerText = 'Not available for this device';
+      button.title = 'Open-Source PyMOL is available for Windows, macOS and Linux';
     }
   });
 </script>

@@ -1,0 +1,3 @@
+# Keep platform specific line endings independent of the git client settings
+*.bat text eol=crlf
+*.sh text eol=lf

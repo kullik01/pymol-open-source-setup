@@ -13,9 +13,9 @@
 #-*
 #-*
 #Z* -------------------------------------------------------------------
-if [ -d "./.venv/bin" ]; then
-    # Default behavior: Run automations.py
-    ./.venv/bin/python ./automations/my_automator.py "$@"
-else
-    echo "Virtual environment does not exist yet! Please run create a one."
+cd "$(dirname "$0")" || exit 1
+if [ ! -x ./.venv/bin/python ]; then
+    echo "Virtual environment does not exist yet! Please create it first (see README.md)." >&2
+    exit 1
 fi
+exec ./.venv/bin/python ./automations/my_automator.py "$@"

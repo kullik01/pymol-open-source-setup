@@ -1,3 +1,4 @@
+@echo off
 REM A* -------------------------------------------------------------------
 REM B* A simple wrapper script for running automation tasks more smoothly
 REM -* without needing to know the exact python interpreter path
@@ -12,8 +13,10 @@ REM -*
 REM -*
 REM -*
 REM Z* -------------------------------------------------------------------
-if exist .\.venv\Scripts\python.exe (
-    .\.venv\Scripts\python.exe .\automations\my_automator.py %*
-) else (
-    echo Virtual environment does not exist yet! Please run run_automation.bat init
+cd /d "%~dp0"
+if not exist .\.venv\Scripts\python.exe (
+    echo Virtual environment does not exist yet! Please create it first, see README.md. 1>&2
+    exit /b 1
 )
+.\.venv\Scripts\python.exe .\automations\my_automator.py %*
+exit /b %errorlevel%

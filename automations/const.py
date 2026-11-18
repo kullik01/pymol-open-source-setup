@@ -14,79 +14,37 @@
 #-*
 #Z* -------------------------------------------------------------------
 """
-import platform
-import sys
 import pathlib
-import toml
+import sys
+import sysconfig
+import tomllib
 
 
-PROJECT_ROOT_DIR = pathlib.Path(__file__).parent.parent
+PROJECT_ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent
+DIST_DIR = PROJECT_ROOT_DIR / "dist"
+SETUP_BUILD_EXE_FILEPATH = PROJECT_ROOT_DIR / "os_specific" / "setup_build_exe.py"
+
 PYTHON_EXECUTABLE = sys.executable
-
-tmp_pyproject_toml = toml.load(
-  pathlib.Path(PROJECT_ROOT_DIR / "pyproject.toml")
-)
-PROJECT_NAME = tmp_pyproject_toml["project"]["name"]
-PROJECT_VERSION = tmp_pyproject_toml["project"]["version"]
 PYTHON_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}"
 
+# The automations always run with the interpreter of the project's .venv,
+# so these paths point into that virtual environment on every platform.
+SITE_PACKAGES_DIR = pathlib.Path(sysconfig.get_path("platlib"))
+PYMOL_PACKAGE_DIR = SITE_PACKAGES_DIR / "pymol"
+VENV_SCRIPTS_DIR = pathlib.Path(sysconfig.get_path("scripts"))
 
-def invalid_platform() -> int:
-  """Function that reports that the platform is invalid and returns 1.
+with open(PROJECT_ROOT_DIR / "pyproject.toml", "rb") as tmp_file:
+  PROJECT_VERSION = tomllib.load(tmp_file)["project"]["version"]
 
-  Note:
-    This function does not automatically crash the program because this
-    creates problems with pythons static type checker. Therefore, the
-    function needs to be nested inside exit().
-  """
-  print(f"Invalid platform: {platform.system()}")
-  return 1
-
-
-# <editor-fold desc="Check running OS">
-if platform.system() == "Windows":
-  WIN32 = True
-  __APPLE__ = False
-  __linux__ = False
-elif platform.system() == "Darwin":
-  WIN32 = False
-  __APPLE__ = True
-  __linux__ = False
-elif platform.system() == "Linux":
-  WIN32 = False
-  __APPLE__ = False
-  __linux__ = True
-else:
-  exit(invalid_platform())
-# </editor-fold>
+WIN32 = sys.platform == "win32"
+MACOS = sys.platform == "darwin"
+LINUX = sys.platform.startswith("linux")
 
 if WIN32:
-  PYMOL_PACKAGE_DIR = pathlib.Path(
-    PROJECT_ROOT_DIR / ".venv/Lib/site-packages/pymol"
-  )
-  OS_SPECIFIC_DIR = pathlib.Path(
-    PROJECT_ROOT_DIR / "os_specific/windows"
-  )
-  OS_SPECIFIC_SETUP_BUILD_EXE = pathlib.Path(
-    OS_SPECIFIC_DIR, "setup_build_exe.py"
-  )
-elif __APPLE__:
-  PYMOL_PACKAGE_DIR = pathlib.Path(
-    PROJECT_ROOT_DIR / f".venv/lib/python{PYTHON_VERSION}/site-packages/pymol"
-  )
-  OS_SPECIFIC_DIR = pathlib.Path(
-    PROJECT_ROOT_DIR / "os_specific/macos"
-  )
-  OS_SPECIFIC_SETUP_BUILD_EXE = pathlib.Path(
-    OS_SPECIFIC_DIR, "setup_build_exe.py"
-  )
-elif __linux__:
-  PYMOL_PACKAGE_DIR = pathlib.Path(
-    PROJECT_ROOT_DIR / f".venv/lib/python{PYTHON_VERSION}/site-packages/pymol"
-  )
-  OS_SPECIFIC_DIR = pathlib.Path(
-    PROJECT_ROOT_DIR / "os_specific/linux"
-  )
-  OS_SPECIFIC_SETUP_BUILD_EXE = pathlib.Path(
-    OS_SPECIFIC_DIR, "setup_build_exe.py"
-  )
+  OS_SPECIFIC_DIR = PROJECT_ROOT_DIR / "os_specific" / "windows"
+elif MACOS:
+  OS_SPECIFIC_DIR = PROJECT_ROOT_DIR / "os_specific" / "macos"
+elif LINUX:
+  OS_SPECIFIC_DIR = PROJECT_ROOT_DIR / "os_specific" / "linux"
+else:
+  sys.exit(f"Unsupported platform: {sys.platform}")

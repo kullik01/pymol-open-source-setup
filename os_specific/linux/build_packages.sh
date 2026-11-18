@@ -26,11 +26,6 @@ STAGING_DIR="$(mktemp -d)"
 trap 'rm -rf "$STAGING_DIR"' EXIT
 mkdir -p "$OUT_DIR"
 
-# --- Portable archive: extracts into a single PyMOL-Open-Source-<version>/ directory
-tar -C dist -czf "$OUT_DIR/${APP_NAME}_v${VERSION}.tar.gz" \
-  --transform "s|^${FROZEN_APP_DIR#dist/}|${APP_NAME}-${VERSION}|" \
-  "${FROZEN_APP_DIR#dist/}"
-
 # --- Files for the .deb/.rpm packages besides the application itself
 sed "s|/opt/open-source-pymol|${INSTALL_DIR}|g" \
   os_specific/linux/open-source-pymol.desktop > "$STAGING_DIR/open-source-pymol.desktop"
@@ -76,18 +71,52 @@ PACKAGE_CONTENTS=(
   "$STAGING_DIR/open-source-pymol.desktop=/usr/share/applications/open-source-pymol.desktop"
 )
 
-# Debian package names must be lowercase
-fpm "${FPM_ARGS[@]}" -t deb --name "${APP_NAME,,}" --architecture amd64 \
-  --package "$OUT_DIR/${APP_NAME}_v${VERSION}_amd64.deb" \
-  "${DEB_DEPENDS[@]/#/--depends=}" \
-  "${PACKAGE_CONTENTS[@]}"
+# Portable archive: extracts into a single PyMOL-Open-Source-<version>/ directory
+build_tarball() {
+  tar -C dist -czf "$OUT_DIR/${APP_NAME}_v${VERSION}.tar.gz" \
+    --transform "s|^${FROZEN_APP_DIR#dist/}|${APP_NAME}-${VERSION}|" \
+    "${FROZEN_APP_DIR#dist/}"
+}
 
-# No /usr/lib/.build-id links: they would conflict with other packages that
-# contain the same (bundled) libraries.
-fpm "${FPM_ARGS[@]}" -t rpm --name "$APP_NAME" --architecture x86_64 \
-  --rpm-rpmbuild-define "_build_id_links none" \
-  --package "$OUT_DIR/${APP_NAME}_v${VERSION}_x86_64.rpm" \
-  "${RPM_SONAMES[@]/#/--depends=}" \
-  "${PACKAGE_CONTENTS[@]}"
+build_deb() {
+  # Debian package names must be lowercase
+  fpm "${FPM_ARGS[@]}" -t deb --name "${APP_NAME,,}" --architecture amd64 \
+    --package "$OUT_DIR/${APP_NAME}_v${VERSION}_amd64.deb" \
+    "${DEB_DEPENDS[@]/#/--depends=}" \
+    "${PACKAGE_CONTENTS[@]}"
+}
+
+build_rpm() {
+  # No /usr/lib/.build-id links: they would conflict with other packages that
+  # contain the same (bundled) libraries.
+  fpm "${FPM_ARGS[@]}" -t rpm --name "$APP_NAME" --architecture x86_64 \
+    --rpm-rpmbuild-define "_build_id_links none" \
+    --package "$OUT_DIR/${APP_NAME}_v${VERSION}_x86_64.rpm" \
+    "${RPM_SONAMES[@]/#/--depends=}" \
+    "${PACKAGE_CONTENTS[@]}"
+}
+
+# Each package compresses the whole application on a single CPU core, so the
+# three packages are built in parallel. Their output is shown one after another.
+PACKAGE_BUILDS=(build_tarball build_deb build_rpm)
+PIDS=()
+for BUILD in "${PACKAGE_BUILDS[@]}"; do
+  "$BUILD" > "$STAGING_DIR/$BUILD.log" 2>&1 &
+  PIDS+=("$!")
+done
+FAILED=0
+for INDEX in "${!PACKAGE_BUILDS[@]}"; do
+  BUILD="${PACKAGE_BUILDS[$INDEX]}"
+  if wait "${PIDS[$INDEX]}"; then
+    echo "--- ${BUILD}: done"
+  else
+    echo "--- ${BUILD}: FAILED" >&2
+    FAILED=1
+  fi
+  cat "$STAGING_DIR/$BUILD.log"
+done
+if [ "$FAILED" -ne 0 ]; then
+  exit 1
+fi
 
 ls -l "$OUT_DIR"

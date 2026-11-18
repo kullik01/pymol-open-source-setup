@@ -12,13 +12,24 @@ cd "$ROOT_DIR"
 APP_NAME="PyMOL-Open-Source"
 VERSION="$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)"
 APP_PATH="dist/${APP_NAME}-${VERSION}.app"
-DMG_NAME="${APP_NAME}_v${VERSION}"
 OUT_DIR="os_specific/dist"
 
 if [ ! -d "$APP_PATH" ]; then
   echo "$APP_PATH does not exist. Run './automator.sh build app' first." >&2
   exit 1
 fi
+
+# The DMG name tells which Macs the app runs on, based on the built app itself
+CMD_MODULES=("$APP_PATH"/Contents/Resources/lib/pymol/_cmd.*.so)
+case "$(lipo -archs "${CMD_MODULES[0]}")" in
+  arm64) ARCH_LABEL="AppleSilicon" ;;
+  x86_64) ARCH_LABEL="Intel" ;;
+  *)
+    echo "Unsupported architecture of ${CMD_MODULES[0]}" >&2
+    exit 1
+    ;;
+esac
+DMG_NAME="${APP_NAME}_v${VERSION}_macOS_${ARCH_LABEL}"
 if ! command -v create-dmg > /dev/null; then
   echo "create-dmg not found. Install it with: brew install create-dmg" >&2
   exit 1

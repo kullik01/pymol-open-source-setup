@@ -91,9 +91,15 @@ jobs:
 
   # ----- macOS build section
   build-macos:
-    # macos-13 is unsupported due to a bug in create-dmg
-    # macos-14 runner images were retired by GitHub
-    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: macos-15, arch: arm64, label: AppleSilicon }
+          # Last Intel (x86_64) runner image of GitHub, supported until August 2027
+          - { runner: macos-15-intel, arch: x86_64, label: Intel }
+    name: build-macos (${{ matrix.label }})
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -136,8 +142,10 @@ jobs:
       - name: Verify DMG
         # Mounts the DMG like a user would and tests the app inside it
         timeout-minutes: 5
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
         run: |
-          DMG="os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}.dmg"
+          DMG="os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_macOS_${{ matrix.label }}.dmg"
           hdiutil verify "$DMG"
           MOUNT_DIR="$(mktemp -d)"
           hdiutil attach "$DMG" -readonly -nobrowse -mountpoint "$MOUNT_DIR"
@@ -147,12 +155,17 @@ jobs:
           test -f "$MOUNT_DIR/.background/dmg_background.svg"
           APP="$MOUNT_DIR/PyMOL-Open-Source-${PROJECT_VERSION}.app"
           codesign --verify --deep "$APP"
+          # PyMOL, Qt and numpy must be built for the architecture of this DMG
+          for MODULE in "$APP"/Contents/Resources/lib/{pymol/_cmd.*.so,PyQt5/QtCore.abi3.so,numpy/core/_multiarray_umath.*.so}; do
+            echo "$(lipo -archs "$MODULE")  ${MODULE#"$APP"/}"
+            lipo -archs "$MODULE" | grep -qw "$EXPECTED_ARCH"
+          done
           tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6
         with:
-          name: PyMOL-Open-Source-macOS-macos-15-Setup
+          name: PyMOL-Open-Source-macOS-${{ matrix.label }}-Setup
           path: os_specific/dist/*.dmg
   # --- end
 

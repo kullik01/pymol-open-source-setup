@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Actions CI Results"
+  short_description: "Read and summarize GitHub Actions CI runs"
+  default_prompt: "Use $github-actions-ci-results to inspect this GitHub Actions run and report its status, failed jobs, and relevant log output."

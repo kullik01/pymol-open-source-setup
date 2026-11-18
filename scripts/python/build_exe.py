@@ -1,4 +1,4 @@
-"""
+"""Run the legacy cx_Freeze application build.
 #A* -------------------------------------------------------------------
 #B* This file contains source code for running automation tasks related
 #-* to the build process of the PyMOL computer program
@@ -29,7 +29,12 @@ FILE_ROOT_PATH = pathlib.Path(__file__).parent
 PROJECT_ROOT_DIR = pathlib.Path(FILE_ROOT_PATH).parent
 
 
-def get_mac_architecture():
+def get_mac_architecture() -> str:
+  """Return the macOS hardware architecture reported by the system.
+
+  Returns:
+    The architecture name reported by ``sysctl`` or ``platform``.
+  """
   try:
     # Get the hardware architecture using sysctl
     arch = subprocess.check_output(
@@ -76,12 +81,11 @@ freezer = Freezer(
 )
 
 
-def remove_dist_info_folders(directory: pathlib.Path):
-  """
-  Remove all folders ending with .dist-info from the specified directory.
+def remove_dist_info_folders(directory: pathlib.Path) -> None:
+  """Remove all ``.dist-info`` folders below ``directory``.
 
   Args:
-      directory (str): The path to the directory to search.
+      directory: The path to the directory to search.
   """
   for root, dirs, files in os.walk(str(directory)):
     for dir_name in dirs:

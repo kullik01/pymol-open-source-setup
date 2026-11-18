@@ -38,6 +38,8 @@ Please note that the files provided here are **unofficial**. They are informal, 
 The following information is about building a platform dependent package/setup from source.
 
 ### Prerequisites for Windows
+- A clean checkout on a native Windows x64 build environment
+- Python 3.11 and uv 0.12.3
 - Inno Setup compiler 6
   - Install location must be: `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`
 
@@ -47,23 +49,35 @@ The following information is about building a platform dependent package/setup f
   - yum (CentOS, Fedora, or RHEL): `sudo yum install ruby`
 
 ### Step-by-step guide
-1. Create a new Python virtual environment
-2. Install build dependencies using the requirements.txt of your platform
-3. Build the app package:
+Use the platform-specific instructions below. The supported Windows standalone
+flow does not require a virtual environment or the legacy platform
+`requirements.txt`/cx_Freeze dependencies.
 
 #### Windows
-If you are on Windows run:
+The supported Windows packaging path is the standalone x64 bundle. From a
+Python 3.11 environment with uv 0.12.3 available, run:
 ```shell
-.\win_automator.bat build app
+python pymakefile.py build_windows_bundle
+python pymakefile.py package_windows_bundle
+python pymakefile.py prepare_inno_setup
 ```
+
+The second command creates the deterministic portable ZIP. The third command
+creates the x64 Inno staging tree. Compile the x64 installer without executing
+it:
 ```shell
-.\win_automator.bat build inno_setup
+& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DMyAppVersion="<version>" os_specific/windows/inno_setup/setup_x64.iss
 ```
+
+Windows x86 CI and packaging are retired and unsupported. Do not use the old
+cx_Freeze `build_app` or x86 Inno packaging path for supported Windows output.
+Installer execution, installation, and shortcut validation are not part of this
+build flow.
 
 #### macOS
 If you are on macOS:
 ```shell
-chmod +x ./automator.sh && ./automator.sh build app
+chmod +x ./pymake.sh && ./pymake.sh build_app
 ```
 To build the DMG use a tool like [create-dmg](https://github.com/create-dmg/create-dmg) or fork the repository 
 and run the GitHub action build_app.yaml.
@@ -71,7 +85,7 @@ and run the GitHub action build_app.yaml.
 #### Linux
 If you are on Linux:
 ```shell
-chmod +x ./automator.sh && ./automator.sh build app
+chmod +x ./pymake.sh && ./pymake.sh build_app
 ```
 To build the tar.gz run:
 ```shell

@@ -4,6 +4,13 @@ readme = "README.md"
 requires-python = ">=3.11"
 version = "3.1.0.4+4"
 license = {file = "LICENSE"}
+dependencies = [
+    "numpy==1.26.4",
+    "pymol-open-source-whl==3.1.0.4",
+    "PyQt5==5.15.11",
+    "PyQt5-Qt5==5.15.2",
+    "PyQt5_sip==12.17.0",
+]
 #description = """
 #PyMOL is a Python-enhanced molecular graphics tool.
 #It excels at 3D visualization of proteins, small molecules, density,
@@ -19,7 +26,14 @@ authors = [
 requires = ["setuptools", "numpy==1.26.4", "toml"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = []
+
 [project.urls]
 Homepage = "https://kullik01.github.io/pymol-open-source-setup"
 Documentation = "https://pymolwiki.org/index.php/Main_Page"
 Repository = "https://github.com/kullik01/pymol-open-source-setup"
+
+[dependency-groups]
+test = ["pytest"]
+build = ["uv"]

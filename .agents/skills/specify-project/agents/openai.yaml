@@ -1,0 +1,4 @@
+interface:
+  display_name: "Specify Project"
+  short_description: "Interview and create a project specification"
+  default_prompt: "Use $specify-project to interview me one question at a time and create an accepted SPECIFICATION.md."

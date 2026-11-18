@@ -1,3 +1,5 @@
+"""Generate C++ shader and build-information sources for PyMOL."""
+
 import argparse
 import glob
 import io as cStringIO
@@ -18,8 +20,11 @@ from setuptools.command.build_py import build_py
 from setuptools.command.install import install
 
 def create_all(generated_dir, pymoldir="."):
-  """
-  Generate various stuff
+  """Generate shader text and build information files.
+
+  Args:
+    generated_dir: Directory receiving generated files.
+    pymoldir: Root directory containing PyMOL source inputs.
   """
   create_shadertext(
     os.path.join(pymoldir, "data", "shaders"),
@@ -31,12 +36,14 @@ def create_all(generated_dir, pymoldir="."):
 
 
 class openw(object):
-  """
-  File-like object for writing files. File is actually only
-  written if the content changed.
-  """
+  """Write a file only when its content changes."""
 
   def __init__(self, filename):
+    """Initialize a write-on-change stream.
+
+    Args:
+      filename: Destination file path.
+    """
     if os.path.exists(filename):
       self.out = cStringIO.StringIO()
       self.filename = filename
@@ -46,6 +53,7 @@ class openw(object):
       self.filename = None
 
   def close(self):
+    """Close the stream and replace the destination when content changes."""
     if self.out.closed:
       return
     if self.filename:
@@ -58,19 +66,43 @@ class openw(object):
     self.out.close()
 
   def __getattr__(self, name):
+    """Delegate an attribute lookup to the underlying stream.
+
+    Args:
+      name: Attribute name.
+
+    Returns:
+      The delegated attribute.
+    """
     return getattr(self.out, name)
 
   def __enter__(self):
+    """Return this stream for use in a context manager."""
     return self
 
   def __exit__(self, *a, **k):
+    """Close the stream when leaving a context manager.
+
+    Args:
+      a: Positional context-manager exit arguments.
+      k: Keyword context-manager exit arguments.
+    """
     self.close()
 
   def __del__(self):
+    """Close the stream during object cleanup."""
     self.close()
 
 
 def create_shadertext(shaderdir, shaderdir2, outputheader, outputfile):
+  """Generate C++ shader source and dependency tables.
+
+  Args:
+    shaderdir: Primary shader directory.
+    shaderdir2: Secondary shader directory.
+    outputheader: Generated header path.
+    outputfile: Generated source path.
+  """
   outputheader = openw(outputheader)
   outputfile = openw(outputfile)
 
@@ -135,6 +167,12 @@ def create_shadertext(shaderdir, shaderdir2, outputheader, outputfile):
 
 
 def create_buildinfo(outputdir, pymoldir="."):
+  """Generate build metadata from the current Git revision.
+
+  Args:
+    outputdir: Generated header directory.
+    pymoldir: PyMOL repository directory.
+  """
   try:
     sha = (
       Popen(["git", "rev-parse", "HEAD"], cwd=pymoldir, stdout=PIPE)

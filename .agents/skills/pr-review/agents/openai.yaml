@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub PR Review"
+  short_description: "Review a GitHub PR and prepare anchored inline comments"
+  default_prompt: "Use $pr-review to review this GitHub Pull Request and prepare a validated pending review without modifying the repository."

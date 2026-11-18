@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design Solution"
+  short_description: "Create a practical reviewed technical design"
+  default_prompt: "Use $design-solution to design this feature or product with clear trade-offs and contracts."

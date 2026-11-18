@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Change"
+  short_description: "Pair with AI to plan, implement, and verify a change"
+  default_prompt: "Use $build-change to work with me interactively on this bounded code change."

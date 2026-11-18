@@ -1,0 +1,4 @@
+interface:
+  display_name: "Define Product"
+  short_description: "Turn an idea into a clear product or feature brief"
+  default_prompt: "Use $define-product to shape this idea into a clear, testable product or feature brief."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Clean Code Review"
+  short_description: "Scan a diff for Clean Code, GoF, and Python smells"
+  default_prompt: "Use $clean-code-review to scan the exact change for cataloged code smells and produce the required report."

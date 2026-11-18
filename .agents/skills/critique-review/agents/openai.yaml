@@ -1,0 +1,4 @@
+interface:
+  display_name: "Critique Review"
+  short_description: "Turn review findings into precise suggested diffs"
+  default_prompt: "Use $critique-review to draft precise suggested diffs from these findings without modifying files."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Launch Product"
+  short_description: "Prepare, release, observe, and learn safely"
+  default_prompt: "Use $launch-product to assess readiness and plan a safe, measurable rollout."

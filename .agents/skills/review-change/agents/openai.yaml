@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Change"
+  short_description: "Review a change for correctness, risk, and quality"
+  default_prompt: "Use $review-change to independently review this exact change and its validation evidence."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan Delivery"
+  short_description: "Plan milestones, owners, dependencies, and risks"
+  default_prompt: "Use $plan-delivery to turn this accepted brief and design into a lightweight team delivery plan."

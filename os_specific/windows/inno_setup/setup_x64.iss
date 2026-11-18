@@ -44,11 +44,8 @@ Source: "..\..\..\inno-build-release\inno-assets\logo.ico"; DestDir: "{app}\asse
 Source: "..\..\..\inno-build-release\inno-sources\*"; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs createallsubdirs;
 
 [Icons]
-Name: "{commondesktop}\Open-Source PyMOL"; Filename: "{app}\bin\Open-Source-PyMOL.exe"; IconFilename: "{app}\assets\logo.ico"
-Name: "{commonstartmenu}\Open-Source PyMOL"; Filename: "{app}\bin\Open-Source-PyMOL.exe"; IconFilename: "{app}\assets\logo.ico"
-
-[Run]
-Filename: "{app}\bin\VC_redist.x64.exe"; Parameters: "/quiet /norestart"; Flags: runhidden waituntilterminated
+Name: "{commondesktop}\Open-Source PyMOL"; Filename: "{app}\bin\launch_pymol.cmd"; IconFilename: "{app}\assets\logo.ico"
+Name: "{commonstartmenu}\Open-Source PyMOL"; Filename: "{app}\bin\launch_pymol.cmd"; IconFilename: "{app}\assets\logo.ico"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"

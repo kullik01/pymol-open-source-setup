@@ -43,10 +43,10 @@ jobs:
         shell: bash
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -83,7 +83,7 @@ jobs:
         run: 7z a -tzip -bso0 -bsp0 "os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_x64_portable.zip" "./dist/exe.win-amd64-${PYTHON_VERSION}/*"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: PyMOL-Open-Source-Windows-x64-Setup
           path: os_specific/dist/*
@@ -91,15 +91,15 @@ jobs:
 
   # ----- macOS build section
   build-macos:
-    # macos-13 is unsupported due to a bug in the `create-dmg` action
+    # macos-13 is unsupported due to a bug in create-dmg
     # macos-14 runner images were retired by GitHub
     runs-on: macos-15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -127,24 +127,33 @@ jobs:
           tests/run_smoke_test.sh "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app/Contents/MacOS/PyMOL"
           codesign --verify --deep "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app"
 
-      - name: Ensure no other process is using the DMG
-        run: hdiutil detach /Volumes/PyMOL-Open-Source || true
+      - name: Install create-dmg
+        run: brew install create-dmg
 
-      - name: Build DMG with retry
-        uses: urban233/create-dmg-actions@v0.0.2
-        with:
-          dmg_name: 'PyMOL-Open-Source_v${{ env.PROJECT_VERSION }}'
-          src_dir: 'dist/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}.app'
-          bg_filepath: 'os_specific/macos/dmg/bg.png'
-        env:
-          RETRIES: 3
-          RETRY_DELAY: 10
+      - name: Build DMG
+        run: os_specific/macos/build_dmg.sh
+
+      - name: Verify DMG
+        # Mounts the DMG like a user would and tests the app inside it
+        timeout-minutes: 5
+        run: |
+          DMG="os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}.dmg"
+          hdiutil verify "$DMG"
+          MOUNT_DIR="$(mktemp -d)"
+          hdiutil attach "$DMG" -readonly -nobrowse -mountpoint "$MOUNT_DIR"
+          trap 'hdiutil detach "$MOUNT_DIR"' EXIT
+          ls -la "$MOUNT_DIR"
+          test -L "$MOUNT_DIR/Applications"
+          test -f "$MOUNT_DIR/.background/dmg_background.svg"
+          APP="$MOUNT_DIR/PyMOL-Open-Source-${PROJECT_VERSION}.app"
+          codesign --verify --deep "$APP"
+          tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: PyMOL-Open-Source-macOS-macos-15-Setup
-          path: ./*.dmg
+          path: os_specific/dist/*.dmg
   # --- end
 
   # ----- GNU Linux build section
@@ -153,10 +162,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -185,7 +194,7 @@ jobs:
         run: os_specific/linux/build_packages.sh
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: PyMOL-Open-Source-GNU-Linux-x86_64-Setup
           path: os_specific/dist/*
@@ -216,12 +225,12 @@ jobs:
         run: ${{ matrix.setup }}
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           sparse-checkout: tests
 
       - name: Download packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: PyMOL-Open-Source-GNU-Linux-x86_64-Setup
           path: packages

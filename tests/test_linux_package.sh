@@ -9,6 +9,7 @@ set -euo pipefail
 
 PACKAGE="$(realpath "$1")"
 TESTS_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=/dev/null
 source /etc/os-release
 echo "=== Testing $(basename "$PACKAGE") on ${PRETTY_NAME}"
 

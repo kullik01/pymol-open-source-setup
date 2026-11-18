@@ -73,8 +73,8 @@ for all three platforms.
 4. Create the installer/packages (written to `os_specific/dist`):
    - Windows: `.\win_automator.bat build inno_setup`
    - Linux: `os_specific/linux/build_packages.sh` (creates the .tar.gz, .deb and .rpm)
-   - macOS: the DMG is created by the GitHub action with
-     [create-dmg](https://github.com/create-dmg/create-dmg).
+   - macOS: `os_specific/macos/build_dmg.sh` (requires [create-dmg](https://github.com/create-dmg/create-dmg):
+     `brew install create-dmg`)
 
 ## License
 Copyright (c) [Schrodinger, LLC](https://www.schrodinger.com/)

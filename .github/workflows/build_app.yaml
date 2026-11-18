@@ -1,14 +1,14 @@
 #A* -------------------------------------------------------------------
 #B* This file contains source code for running a GitHub automation
 #-* related to the build process of the PyMOL computer program
-#C* Copyright 2025 by Martin Urban.
+#C* Copyright 2026 by Martin Urban.
 #D* -------------------------------------------------------------------
 #E* It is unlawful to modify or remove this copyright notice.
 #F* -------------------------------------------------------------------
 #G* Please see the accompanying LICENSE file for further information.
 #H* -------------------------------------------------------------------
 #I* Additional authors of this source file include:
-#-*
+#-* Hannah Kullik
 #-*
 #-*
 #Z* -------------------------------------------------------------------
@@ -20,225 +20,223 @@ on:
       - master
       - main
   pull_request:
+  workflow_dispatch:
+
+# Cancel outdated runs of the same pull request
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PYTHON_VERSION: "3.11"
+  # More robust against temporary network problems with PyPI
+  PIP_DEFAULT_TIMEOUT: "60"
+  PIP_RETRIES: "10"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
 jobs:
   # ----- Windows build section
   build-windows:
-    strategy:
-      fail-fast: false
-      matrix:
-        win_arch: ['x86', 'x64']
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+        uses: actions/checkout@v5
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
           cache-dependency-path: 'os_specific/windows/requirements.txt'
 
       - name: Extract project version
-        shell: bash
-        run: |
-          python -c "import tomllib; data=tomllib.load(open('pyproject.toml','rb')); print('PROJECT_VERSION='+data['project']['version'])" >> $GITHUB_ENV
+        run: echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)" >> "$GITHUB_ENV"
 
       - name: Create virtual environment
         run: |
           python -m venv .venv
-          call .venv\Scripts\activate.bat
-          python -m pip install --upgrade setuptools pip build
-          python -m pip install -r ./os_specific/windows/requirements.txt
-        shell: cmd
-
-      - name: Download Inno Setup installer
-        run: |
-          Invoke-WebRequest -Uri https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe -OutFile inno-setup.exe
+          .venv/Scripts/python -m pip install wheel setuptools
+          .venv/Scripts/python -m pip install -r os_specific/windows/requirements.txt
 
       - name: Install Inno Setup
+        shell: pwsh
         run: |
-          .\inno-setup.exe /SILENT
+          Invoke-WebRequest -Uri https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe -OutFile "$env:RUNNER_TEMP\innosetup.exe"
+          Start-Process -FilePath "$env:RUNNER_TEMP\innosetup.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait
 
-      - name: Add Inno Setup to PATH
-        run: |
-          $env:PATH += ";C:\Program Files (x86)\Inno Setup 6"
+      - name: Build frozen application
+        shell: cmd
+        run: win_automator.bat build app
 
-      - name: Build frozen Python application
-        run: |
-          .\win_automator.bat build app
-          .\win_automator.bat build inno_setup_ci
+      - name: Smoke test
+        timeout-minutes: 5
+        run: tests/run_smoke_test.sh "dist/exe.win-amd64-${PYTHON_VERSION}/Open-Source-PyMOL.exe"
 
-        shell: powershell
+      - name: Build installer
+        shell: cmd
+        run: win_automator.bat build inno_setup
 
-      - name: Compile .iss file
-        run: |
-          iscc /DMyAppVersion="${{ env.PROJECT_VERSION }}" os_specific/windows/inno_setup/setup_${{ matrix.win_arch }}.iss
-
-      - name: Create portable installation
-        run: |
-          Compress-Archive -Path ./dist/exe.win-amd64-3.11/* -DestinationPath ./os_specific/dist/PyMOL-Open-Source_v${{ env.PROJECT_VERSION }}_${{ matrix.win_arch }}_portable.zip
-        shell: powershell
+      - name: Create portable archive
+        run: 7z a -tzip -bso0 -bsp0 "os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_x64_portable.zip" "./dist/exe.win-amd64-${PYTHON_VERSION}/*"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
-          name: PyMOL-Open-Source-Windows-${{ matrix.win_arch }}-Setup
-          path: ./os_specific/dist/*
+          name: PyMOL-Open-Source-Windows-x64-Setup
+          path: os_specific/dist/*
   # --- end
 
   # ----- macOS build section
   build-macos:
-    strategy:
-      fail-fast: false
-      matrix:
-        # macos-13 is unsupported due to a bug in the `create-dmg` action
-        # macos-14 runner images were retired by GitHub
-        os: [ macos-15 ]
-    runs-on: ${{ matrix.os }}
+    # macos-13 is unsupported due to a bug in create-dmg
+    # macos-14 runner images were retired by GitHub
+    runs-on: macos-15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+        uses: actions/checkout@v5
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
           cache-dependency-path: 'os_specific/macos/requirements.txt'
 
       - name: Extract project version
-        run: |
-          python -c "import tomllib; data=tomllib.load(open('pyproject.toml','rb')); print('PROJECT_VERSION='+data['project']['version'])" >> $GITHUB_ENV
+        run: echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)" >> "$GITHUB_ENV"
 
       - name: Create virtual environment
         run: |
           python -m venv .venv
-          source .venv/bin/activate
-          python -m pip install wheel setuptools
-          python -m pip install -r ./os_specific/macos/requirements.txt
+          .venv/bin/python -m pip install wheel setuptools
+          .venv/bin/python -m pip install -r os_specific/macos/requirements.txt
 
-      - name: Build app package
+      - name: Build app bundle
+        run: ./automator.sh build app
+
+      - name: Ad-hoc sign app bundle
+        # Prevents Gatekeeper "damaged app" errors
+        run: codesign --force --deep --sign - "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app"
+
+      - name: Smoke test
+        timeout-minutes: 5
         run: |
-          chmod +x ./automator.sh
-          ./automator.sh build app
+          tests/run_smoke_test.sh "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app/Contents/MacOS/PyMOL"
+          codesign --verify --deep "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app"
 
-      - name: Ad-hoc Sign App Bundle
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Build DMG
+        run: os_specific/macos/build_dmg.sh
+
+      - name: Verify DMG
+        # Mounts the DMG like a user would and tests the app inside it
+        timeout-minutes: 5
         run: |
-          echo "Applying ad-hoc signature to prevent Gatekeeper damage errors..."
-          codesign --force --deep --sign - os_specific/macos/build/open_source_pymol-${{ env.PROJECT_VERSION }}.app
-
-      - name: Rename app package
-        run: mv os_specific/macos/build/open_source_pymol-${{ env.PROJECT_VERSION }}.app dist/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}.app
-
-      - name: Ensure no other process is using the DMG
-        run: |
-          hdiutil detach /Volumes/PyMOL-Open-Source || true
-
-      - name: Build DMG with retry
-        uses: urban233/create-dmg-actions@v0.0.2
-        with:
-          dmg_name: 'PyMOL-Open-Source_v${{ env.PROJECT_VERSION }}'
-          src_dir: 'dist/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}.app'
-          bg_filepath: 'os_specific/macos/dmg/bg.png'
-        env:
-          RETRIES: 3
-          RETRY_DELAY: 10
+          DMG="os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}.dmg"
+          hdiutil verify "$DMG"
+          MOUNT_DIR="$(mktemp -d)"
+          hdiutil attach "$DMG" -readonly -nobrowse -mountpoint "$MOUNT_DIR"
+          trap 'hdiutil detach "$MOUNT_DIR"' EXIT
+          ls -la "$MOUNT_DIR"
+          test -L "$MOUNT_DIR/Applications"
+          test -f "$MOUNT_DIR/.background/dmg_background.svg"
+          APP="$MOUNT_DIR/PyMOL-Open-Source-${PROJECT_VERSION}.app"
+          codesign --verify --deep "$APP"
+          tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
-          name: PyMOL-Open-Source-macOS-${{ matrix.os }}-Setup
-          path: ./*.dmg
+          name: PyMOL-Open-Source-macOS-macos-15-Setup
+          path: os_specific/dist/*.dmg
   # --- end
 
   # ----- GNU Linux build section
   build-gnu-linux:
+    # The oldest available runner, so the app also runs on older distributions
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+        uses: actions/checkout@v5
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
           cache-dependency-path: 'os_specific/linux/requirements.txt'
-
-      - name: Extract project version
-        run: |
-          python -c "import tomllib; data=tomllib.load(open('pyproject.toml','rb')); print('PROJECT_VERSION='+data['project']['version'])" >> $GITHUB_ENV
 
       - name: Create virtual environment
         run: |
           python -m venv .venv
-          source .venv/bin/activate
-          python -m pip install wheel setuptools
-          python -m pip install -r ./os_specific/linux/requirements.txt
+          .venv/bin/python -m pip install wheel setuptools
+          .venv/bin/python -m pip install -r os_specific/linux/requirements.txt
 
-      - name: Build app package
-        run: |
-          chmod +x ./automator.sh
-          ./automator.sh build app
+      - name: Build frozen application
+        run: ./automator.sh build app
 
-      - name: Build tar.gz portable installation
-        run: |
-          mkdir -p packaged/build/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}
-          cp -r ./dist/exe.linux*/* packaged/build/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}/
-          mkdir -p packaged/bin
-          tar czvf packaged/bin/PyMOL-Open-Source_v${{ env.PROJECT_VERSION }}.tar.gz packaged/build/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}
-          rm -r packaged/build
+      - name: Smoke test
+        timeout-minutes: 5
+        run: tests/run_smoke_test.sh dist/exe.linux-*/Open-Source-PyMOL
 
-      - name: Prepare packaging environment
+      - name: Install packaging tools
         run: |
-          sudo apt install rpm -y
-          sudo gem install fpm
-          mkdir -p package-root/opt/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}
-          cp -r ./dist/exe.linux*/* package-root/opt/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}/
-          mkdir -p package-root/usr/bin
-          ln -s /opt/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}/Open-Source-PyMOL package-root/usr/bin/Open-Source-PyMOL
-          mkdir -p package-root/usr/share/applications
-          cp os_specific/linux/open-source-pymol.desktop package-root/usr/share/applications
-          sed -i "s|/opt/open-source-pymol|/opt/PyMOL-Open-Source-${{ env.PROJECT_VERSION }}|g" package-root/usr/share/applications/open-source-pymol.desktop
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq rpm
+          sudo gem install --no-document fpm
 
-      - name: Build .deb package
-        run: |
-          fpm -s dir -t deb \
-          -n PyMOL-Open-Source \
-          -v ${{ env.PROJECT_VERSION }} \
-          -a amd64 \
-          -p PyMOL-Open-Source_v${{ env.PROJECT_VERSION }}_amd64.deb \
-          -C package-root \
-          --description "PyMOL installation for debian-based distros" \
-          --license "BSD-3-Clause" \
-          --maintainer "Martin Urban <martin.urban@studmail.w-hs.de>"
-
-      - name: Build .rpm package
-        run: |
-          fpm -s dir -t rpm \
-          -n PyMOL-Open-Source \
-          -v ${{ env.PROJECT_VERSION }} \
-          -a amd64 \
-          -p PyMOL-Open-Source_v${{ env.PROJECT_VERSION }}_x86_64.rpm \
-          -C package-root \
-          --description "PyMOL installation for red-hat-based distros" \
-          --license "BSD-3-Clause" \
-          --maintainer "Martin Urban <martin.urban@studmail.w-hs.de>"
+      - name: Build .tar.gz, .deb and .rpm packages
+        run: os_specific/linux/build_packages.sh
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: PyMOL-Open-Source-GNU-Linux-x86_64-Setup
-          path: |
-            packaged/bin/*.tar.gz
-            *.deb
-            *.rpm
+          path: os_specific/dist/*
+
+  # Installs the packages on clean distributions (the package manager has to
+  # resolve all declared dependencies) and runs the headless and GUI smoke tests.
+  test-gnu-linux-packages:
+    needs: build-gnu-linux
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { image: 'ubuntu:22.04', package: 'deb' }
+          - { image: 'ubuntu:24.04', package: 'deb' }
+          - { image: 'debian:12', package: 'deb' }
+          - { image: 'fedora:latest', package: 'rpm' }
+          - { image: 'rockylinux/rockylinux:9', package: 'rpm' }
+          - { image: 'almalinux:8', package: 'rpm' }
+          - { image: 'registry.opensuse.org/opensuse/tumbleweed:latest', package: 'rpm' }
+          # The Leap image has no tar, which actions/checkout needs
+          - { image: 'registry.opensuse.org/opensuse/leap:15.6', package: 'rpm', setup: 'zypper --non-interactive install tar gzip' }
+    name: test-gnu-linux-packages (${{ matrix.image }})
+    runs-on: ubuntu-latest
+    container: ${{ matrix.image }}
+    steps:
+      - name: Install checkout prerequisites
+        if: matrix.setup
+        run: ${{ matrix.setup }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          sparse-checkout: tests
+
+      - name: Download packages
+        uses: actions/download-artifact@v7
+        with:
+          name: PyMOL-Open-Source-GNU-Linux-x86_64-Setup
+          path: packages
+
+      - name: Install package and run smoke tests
+        timeout-minutes: 15
+        shell: bash
+        run: tests/test_linux_package.sh packages/*.${{ matrix.package }}
   # --- end

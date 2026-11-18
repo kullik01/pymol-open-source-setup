@@ -18,7 +18,6 @@ for **all major** operating systems.
 ## Contents of this document
 * [About PyMOL](#About-PyMOL)
 * [Contents of this repository](#Contents-of-this-repository)
-    * [Scripts](#Scripts)
 * [From source](#From-source)
     * [Prerequisites](#Prerequisites)
     * [Step-by-step guide](#Step-by-step-guide)
@@ -36,69 +35,46 @@ Please note that the files provided here are **unofficial**. They are informal, 
 
 ## From source
 The following information is about building a platform dependent package/setup from source.
+The GitHub action [build_app.yaml](.github/workflows/build_app.yaml) runs exactly these steps
+for all three platforms.
 
-### Prerequisites for Windows
-- Inno Setup compiler 6
-  - Install location must be: `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`
-
-### Prerequisites for Linux
-- Ruby (**only** if fpm is used for packaging)
-  - apt (Debian or Ubuntu): `sudo apt-get install ruby-full`
-  - yum (CentOS, Fedora, or RHEL): `sudo yum install ruby`
+### Prerequisites
+- Python 3.11
+- Windows: [Inno Setup 6](https://jrsoftware.org/isinfo.php) (default install location or `ISCC.exe` on the `PATH`)
+- Linux (**only** for building the .deb/.rpm packages): [fpm](https://fpm.readthedocs.io/) and `rpmbuild`
+  - Debian/Ubuntu: `sudo apt-get install ruby rpm && sudo gem install fpm`
+  - Fedora: `sudo dnf install ruby rpm-build && sudo gem install fpm`
 
 ### Step-by-step guide
-1. Create a new Python virtual environment
-2. Install build dependencies using the requirements.txt of your platform
-3. Build the app package:
-
-#### Windows
-If you are on Windows run:
-```shell
-.\win_automator.bat build app
-```
-```shell
-.\win_automator.bat build inno_setup
-```
-
-#### macOS
-If you are on macOS:
-```shell
-chmod +x ./automator.sh && ./automator.sh build app
-```
-To build the DMG use a tool like [create-dmg](https://github.com/create-dmg/create-dmg) or fork the repository 
-and run the GitHub action build_app.yaml.
-
-#### Linux
-If you are on Linux:
-```shell
-chmod +x ./automator.sh && ./automator.sh build app
-```
-To build the tar.gz run:
-```shell
-mkdir -p packaged/build/PyMOL-Open-Source-<version-number>
-cp -r ./dist/exe.linux*/* packaged/build/PyMOL-Open-Source-<version-number>/
-mkdir -p packaged/bin
-tar czvf packaged/bin/PyMOL-Open-Source_v<version-number>.tar.gz packaged/build/PyMOL-Open-Source-<version-number>
-```
-If you want to build a .deb or .rpm package, you could use the Ruby gem called fpm:
-```shell
-sudo gem install fpm
-mkdir -p package-root/opt/PyMOL-Open-Source-<version-number>
-cp -r ./dist/exe.linux*/* package-root/opt/PyMOL-Open-Source-<version-number>/
-mkdir -p package-root/usr/bin
-ln -s /opt/PyMOL-Open-Source-<version-number>/Open-Source-PyMOL package-root/usr/bin/Open-Source-PyMOL
-mkdir -p package-root/usr/share/applications
-cp os_specific/linux/open-source-pymol.desktop package-root/usr/share/applications
-sed -i "s|/opt/open-source-pymol|/opt/PyMOL-Open-Source-<version-number>|g" package-root/usr/share/applications/open-source-pymol.desktop
-
-fpm -s dir -t deb \
--n PyMOL-Open-Source \
--v <version-number> \
--a amd64 \
--C package-root \
---description "PyMOL installation for debian-based distros" \
---license "BSD-3-Clause" \
-```
+1. Create a virtual environment named `.venv` in the repository root and install the
+   build dependencies of your platform:
+   ```shell
+   python3.11 -m venv .venv
+   .venv/bin/python -m pip install -r os_specific/<linux|macos>/requirements.txt
+   ```
+   On Windows:
+   ```shell
+   py -3.11 -m venv .venv
+   .venv\Scripts\python.exe -m pip install -r os_specific\windows\requirements.txt
+   ```
+2. Build the frozen application into the `dist` directory:
+   ```shell
+   ./automator.sh build app          # Linux and macOS
+   .\win_automator.bat build app     # Windows
+   ```
+   | Platform      | Output                                         |
+   |---------------|------------------------------------------------|
+   | Windows/Linux | `dist/exe.<platform>-3.11/`                    |
+   | macOS         | `dist/PyMOL-Open-Source-<version>.app`         |
+3. Optionally, check the build with the headless smoke test:
+   ```shell
+   tests/run_smoke_test.sh dist/exe.linux-x86_64-3.11/Open-Source-PyMOL
+   ```
+4. Create the installer/packages (written to `os_specific/dist`):
+   - Windows: `.\win_automator.bat build inno_setup`
+   - Linux: `os_specific/linux/build_packages.sh` (creates the .tar.gz, .deb and .rpm)
+   - macOS: `os_specific/macos/build_dmg.sh` (requires [create-dmg](https://github.com/create-dmg/create-dmg):
+     `brew install create-dmg`)
 
 ## License
 Copyright (c) [Schrodinger, LLC](https://www.schrodinger.com/)

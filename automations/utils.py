@@ -2,33 +2,29 @@
 #A* -------------------------------------------------------------------
 #B* This file contains source code for running automation tasks related
 #-* to the build process of the PyMOL computer program
-#C* Copyright 2025 by Martin Urban.
+#C* Copyright 2026 by Martin Urban.
 #D* -------------------------------------------------------------------
 #E* It is unlawful to modify or remove this copyright notice.
 #F* -------------------------------------------------------------------
 #G* Please see the accompanying LICENSE file for further information.
 #H* -------------------------------------------------------------------
 #I* Additional authors of this source file include:
-#-*
+#-* Hannah Kullik
 #-*
 #-*
 #Z* -------------------------------------------------------------------
 """
-import pathlib
-import shutil
-
-import const
+import subprocess
+import sys
 
 
-def copy_pymol_sources() -> None:
-  """Copies the pymol python sources from the vendor directory."""
-  tmp_src_path = pathlib.Path(const.PROJECT_ROOT_DIR / "src/python")
-  tmp_pymol_python_src_path = pathlib.Path(const.PROJECT_ROOT_DIR / "vendor/pymol-open-source/modules")
-  if not tmp_src_path.exists():
-    print("Copying the pymol python sources ...")
-    tmp_src_path.mkdir(parents=True)
-    shutil.copytree(
-      tmp_pymol_python_src_path,
-      tmp_src_path,
-      dirs_exist_ok=True
-    )
+def run(args: list, **kwargs) -> None:
+  """Runs a command and aborts the automation if it fails.
+
+  Args:
+    args: The command and its arguments.
+    **kwargs: Passed on to subprocess.run (e.g. cwd, env).
+  """
+  tmp_result = subprocess.run([str(arg) for arg in args], **kwargs)
+  if tmp_result.returncode != 0:
+    sys.exit(f"Command failed with exit code {tmp_result.returncode}: {args[0]}")

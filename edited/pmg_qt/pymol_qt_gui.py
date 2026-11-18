@@ -1,7 +1,7 @@
 """
 #A* -------------------------------------------------------------------
 #B* This file contains source code for the main class for PyMOL QT GUI
-#C* Copyright 2025 by Schrodinger, Martin Urban.
+#C* Copyright 2026 by Schrodinger, Martin Urban.
 #D* -------------------------------------------------------------------
 #E* It is unlawful to modify or remove this copyright notice.
 #F* -------------------------------------------------------------------
@@ -9,8 +9,9 @@
 #H* -------------------------------------------------------------------
 #I* Additional authors of this source file include:
 #-* unknown
-#-*
-#J* This file contains added source code by Martin Urban and is indicated
+#-* Hannah Kullik
+#J* This file contains added source code by Martin Urban and Hannah Kullik
+#-* and is indicated
 #-* by # BEGIN EDITED CODE SEGMENT
 #Z* -------------------------------------------------------------------
 """
@@ -1252,6 +1253,7 @@ def execapp():
     app.setWindowIcon(make_pymol_qicon())
 
     # BEGIN EDITED CODE SEGMENT
+    # :author Hannah Kullik
     # Link the window to the installed open-source-pymol.desktop entry.
     # On native Wayland, Qt 5 cannot set window icons; the compositor takes
     # the logo from the desktop entry matching this app id. (On X11/XWayland

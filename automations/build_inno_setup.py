@@ -1,67 +1,50 @@
+"""
+#A* -------------------------------------------------------------------
+#B* This file contains source code for running automation tasks related
+#-* to the build process of the PyMOL computer program
+#C* Copyright 2026 by Martin Urban.
+#D* -------------------------------------------------------------------
+#E* It is unlawful to modify or remove this copyright notice.
+#F* -------------------------------------------------------------------
+#G* Please see the accompanying LICENSE file for further information.
+#H* -------------------------------------------------------------------
+#I* Additional authors of this source file include:
+#-* Hannah Kullik
+#-*
+#-*
+#Z* -------------------------------------------------------------------
+"""
 import pathlib
 import shutil
-import subprocess
 import sys
+import sysconfig
 
 import const
+import utils
 
 
-class BuildInnoSetup:
-  """Contains the logic for building the inno setup EXE file."""
-
-  def __init__(self) -> None:
-    """Constructor."""
-    self.inno_build_path = pathlib.Path(const.PROJECT_ROOT_DIR / "inno-build-release")
-    self.inno_build_src_path = pathlib.Path(self.inno_build_path / "inno-sources")
-    self.inno_build_assets_path = pathlib.Path(self.inno_build_path / "inno-assets")
-    self.inno_setup_compiler_filepath = pathlib.Path(r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe")
-    self.inno_setup_script_filepath = pathlib.Path(const.OS_SPECIFIC_DIR / "inno_setup" / "setup.iss")
-
-  def setup_build_environment(self) -> None:
-    """Sets up a temporary build environment."""
-    # <editor-fold desc="Path/Filepath definitions">
-    tmp_pymol_win_build_files_path = pathlib.Path(const.PROJECT_ROOT_DIR / f"dist/exe.win-amd64-{const.PYTHON_VERSION}")
-    tmp_pymol_win_build_logo_filepath = pathlib.Path(const.OS_SPECIFIC_DIR / "logo.ico")
-    tmp_vc_redist_setup_filepath = pathlib.Path(const.PROJECT_ROOT_DIR / "vendor/microsoft" / "VC_redist.x64.exe")
-    # </editor-fold>
-    """IMPORTANT
-    Use the python interpreter of the venv of pymol windows build because
-    that interpreter gets also used in the build script of the 
-    pymol windows build repo!
-    """
-    # <editor-fold desc="Copy operations">
-    if self.inno_build_path.exists():
-      shutil.rmtree(self.inno_build_path)
-      self.inno_build_path.mkdir()
-    if not tmp_pymol_win_build_files_path.exists():
-      print("Please run: automator build app")
-    shutil.copytree(tmp_pymol_win_build_files_path, self.inno_build_src_path, dirs_exist_ok=True)
-    shutil.copy(tmp_vc_redist_setup_filepath, self.inno_build_src_path)
-    if not self.inno_build_assets_path.exists():
-      self.inno_build_assets_path.mkdir()
-    shutil.copy(tmp_pymol_win_build_logo_filepath, pathlib.Path(self.inno_build_assets_path / "logo.ico"))
-    # </editor-fold>
-
-  def build_inno_setup(self) -> None:
-    """Builds the PyMOL Windows EXE file."""
-    self.setup_build_environment()
-    subprocess.run(
-      [self.inno_setup_compiler_filepath, self.inno_setup_script_filepath],
-      stdout=sys.stdout, stderr=sys.stderr, text=True
-    )
-
-  def build_inno_setup_for_ci(self) -> None:
-    """Builds the PyMOL Windows EXE file."""
-    self.setup_build_environment()
+DEFAULT_ISCC_FILEPATH = pathlib.Path(r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe")
+INNO_SETUP_SCRIPT_FILEPATH = const.PROJECT_ROOT_DIR / "os_specific" / "windows" / "inno_setup" / "setup.iss"
 
 
 def build() -> None:
-  """Builds the inno setup EXE file."""
-  tmp_builder = BuildInnoSetup()
-  tmp_builder.build_inno_setup()
+  """Builds the Windows installer from the frozen application in dist/."""
+  if not const.WIN32:
+    sys.exit("The Inno Setup installer can only be built on Windows.")
+  if sysconfig.get_platform() != "win-amd64":
+    sys.exit("The Inno Setup installer requires a 64-bit (x64) Python interpreter.")
 
+  tmp_frozen_app_dir = const.DIST_DIR / f"exe.{sysconfig.get_platform()}-{const.PYTHON_VERSION}"
+  if not tmp_frozen_app_dir.exists():
+    sys.exit(f"{tmp_frozen_app_dir} does not exist. Run 'build app' first.")
 
-def build_for_ci() -> None:
-  """Builds the inno setup EXE file running in the Windows GitHub action runner."""
-  tmp_builder = BuildInnoSetup()
-  tmp_builder.build_inno_setup_for_ci()
+  tmp_iscc_filepath = shutil.which("ISCC") or DEFAULT_ISCC_FILEPATH
+  if not pathlib.Path(tmp_iscc_filepath).exists():
+    sys.exit("Inno Setup 6 compiler (ISCC.exe) not found. Install Inno Setup 6 or add it to the PATH.")
+
+  utils.run([
+    tmp_iscc_filepath,
+    f"/DMyAppVersion={const.PROJECT_VERSION}",
+    f"/DAppSourceDir={tmp_frozen_app_dir}",
+    INNO_SETUP_SCRIPT_FILEPATH,
+  ])

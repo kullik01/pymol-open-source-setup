@@ -21,11 +21,16 @@ fi
 
 # The DMG name tells which Macs the app runs on, based on the built app itself
 CMD_MODULES=("$APP_PATH"/Contents/Resources/lib/pymol/_cmd.*.so)
-case "$(lipo -archs "${CMD_MODULES[0]}")" in
+if [ ! -f "${CMD_MODULES[0]}" ]; then
+  echo "The PyMOL module _cmd.*.so was not found in ${APP_PATH}." >&2
+  exit 1
+fi
+ARCHS="$(lipo -archs "${CMD_MODULES[0]}")"
+case "$ARCHS" in
   arm64) ARCH_LABEL="AppleSilicon" ;;
   x86_64) ARCH_LABEL="Intel" ;;
   *)
-    echo "Unsupported architecture of ${CMD_MODULES[0]}" >&2
+    echo "Unsupported architecture '${ARCHS}' of ${CMD_MODULES[0]} (expected arm64 or x86_64)" >&2
     exit 1
     ;;
 esac

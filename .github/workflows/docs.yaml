@@ -34,7 +34,10 @@ jobs:
 
   deploy:
     needs: build
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    # Pre-releases do not replace the website of the latest release
+    if: >-
+      (github.event_name == 'release' && !github.event.release.prerelease)
+      || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -46,6 +49,21 @@ jobs:
           cache: 'pip'
           cache-dependency-path: 'docs/website/requirements.txt'
       - run: python -m pip install -r docs/website/requirements.txt
+      - name: Check website download links against the published release
+        # Every download link must point to a file of the published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)"
+          if [ "$(gh release view "v${VERSION}" --json isDraft --jq .isDraft 2>/dev/null)" != "false" ]; then
+            echo "Version ${VERSION} has no published release (v${VERSION}), so the website is not published." >&2
+            exit 1
+          fi
+          mkdir -p "${RUNNER_TEMP}/release-files"
+          gh release view "v${VERSION}" --json assets --jq '.assets[].name' \
+            | while read -r NAME; do touch "${RUNNER_TEMP}/release-files/${NAME}"; done
+          mkdocs build --strict --config-file docs/website/mkdocs.yml --site-dir "${RUNNER_TEMP}/site"
+          tests/check_release_assets.sh "${RUNNER_TEMP}/release-files" "${RUNNER_TEMP}/site"
       - name: Deploy to GitHub Pages
         working-directory: ./docs/website
         run: mkdocs gh-deploy --force

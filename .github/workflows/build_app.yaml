@@ -309,6 +309,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" release-files/* \
-            --draft --verify-tag --generate-notes --title "Release ${GITHUB_REF_NAME}"
+          # Empty if there is no release for the tag yet (the list includes drafts)
+          IS_DRAFT="$(gh release list --limit 100 --json tagName,isDraft \
+            --jq ".[] | select(.tagName == \"${GITHUB_REF_NAME}\") | .isDraft")"
+          if [ -z "$IS_DRAFT" ]; then
+            gh release create "$GITHUB_REF_NAME" release-files/* \
+              --draft --verify-tag --generate-notes --title "Release ${GITHUB_REF_NAME}"
+          elif [ "$IS_DRAFT" = "true" ]; then
+            # A re-run replaces the files of the draft release
+            gh release upload "$GITHUB_REF_NAME" release-files/* --clobber
+          else
+            echo "Release ${GITHUB_REF_NAME} is already published; its files are not replaced." >&2
+            exit 1
+          fi
   # --- end

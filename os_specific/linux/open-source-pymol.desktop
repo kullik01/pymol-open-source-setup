@@ -6,5 +6,6 @@ Exec=/opt/open-source-pymol/Open-Source-PyMOL %F
 Icon=/opt/open-source-pymol/lib/pymol/data/pymol/icons/alt_logo.png
 Type=Application
 StartupNotify=false
+StartupWMClass=PyMOL
 Categories=Education;Chemistry;
 Keywords=pymol;

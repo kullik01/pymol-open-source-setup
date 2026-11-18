@@ -96,7 +96,8 @@ jobs:
       fail-fast: false
       matrix:
         # macos-13 is unsupported due to a bug in the `create-dmg` action
-        os: [ macos-14 ]
+        # macos-14 runner images were retired by GitHub
+        os: [ macos-15 ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository

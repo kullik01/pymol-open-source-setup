@@ -1251,6 +1251,15 @@ def execapp():
     app = PyMOLApplication(['PyMOL'])
     app.setWindowIcon(make_pymol_qicon())
 
+    # BEGIN EDITED CODE SEGMENT
+    # Link the window to the installed open-source-pymol.desktop entry.
+    # On native Wayland, Qt 5 cannot set window icons; the compositor takes
+    # the logo from the desktop entry matching this app id. (On X11/XWayland
+    # the icon comes from setWindowIcon and StartupWMClass in the entry.)
+    if pymol.IS_LINUX and hasattr(app, 'setDesktopFileName'):
+        app.setDesktopFileName('open-source-pymol')
+    # END EDITED CODE SEGMENT
+
     window = PyMOLQtGUI()
     window.setWindowTitle("PyMOL")
 

@@ -1,14 +1,10 @@
 name: Build Docs
 
-# The website is checked on every pull request and push, but only published
-# when a release is published (or manually), so its version, file names and
-# download links always match the latest release.
+# Publishes the website when a release is published (or manually), so its
+# version, file names and download links always match the latest release.
+# Pull requests and pushes check the website in the "website" job of
+# build_app.yaml.
 on:
-  pull_request:
-  push:
-    branches:
-      - master
-      - main
   release:
     types: [published]
   # Publishes the website of the selected branch or tag (Actions > Build Docs > Run workflow)
@@ -18,26 +14,9 @@ permissions:
   contents: read
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.x'
-          cache: 'pip'
-          cache-dependency-path: 'docs/website/requirements.txt'
-      - run: python -m pip install -r docs/website/requirements.txt
-      - name: Build website
-        working-directory: ./docs/website
-        run: mkdocs build --strict
-
   deploy:
-    needs: build
     # Pre-releases do not replace the website of the latest release
-    if: >-
-      (github.event_name == 'release' && !github.event.release.prerelease)
-      || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -45,25 +24,30 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.x'
+          python-version: '3.11'
           cache: 'pip'
           cache-dependency-path: 'docs/website/requirements.txt'
       - run: python -m pip install -r docs/website/requirements.txt
+
+      - name: Build website
+        run: mkdocs build --strict --config-file docs/website/mkdocs.yml --site-dir "${RUNNER_TEMP}/site"
+
       - name: Check website download links against the published release
-        # Every download link must point to a file of the published release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)"
-          if [ "$(gh release view "v${VERSION}" --json isDraft --jq .isDraft 2>/dev/null)" != "false" ]; then
+          # Empty for a draft or a missing release
+          RELEASE_FILES="$(gh release view "v${VERSION}" --json isDraft,assets \
+            --jq 'select(.isDraft | not) | .assets[].name' 2>/dev/null || true)"
+          if [ -z "$RELEASE_FILES" ]; then
             echo "Version ${VERSION} has no published release (v${VERSION}), so the website is not published." >&2
             exit 1
           fi
-          mkdir -p "${RUNNER_TEMP}/release-files"
-          gh release view "v${VERSION}" --json assets --jq '.assets[].name' \
-            | while read -r NAME; do touch "${RUNNER_TEMP}/release-files/${NAME}"; done
-          mkdocs build --strict --config-file docs/website/mkdocs.yml --site-dir "${RUNNER_TEMP}/site"
-          tests/check_release_assets.sh "${RUNNER_TEMP}/release-files" "${RUNNER_TEMP}/site"
+          echo "$RELEASE_FILES" | tests/check_release_assets.sh "${RUNNER_TEMP}/site"
+
       - name: Deploy to GitHub Pages
-        working-directory: ./docs/website
-        run: mkdocs gh-deploy --force
+        # Publishes exactly the checked website (mkdocs gh-deploy uses the same tool)
+        run: |
+          ghp-import --no-jekyll --push --force \
+            --message "Deployed ${GITHUB_SHA} with MkDocs (${GITHUB_REF_NAME})" "${RUNNER_TEMP}/site"

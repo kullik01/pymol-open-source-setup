@@ -4,7 +4,7 @@ Install location: `C:\Users\%USERNAME%\AppData\Roaming\PyMOL-Open-Source\bin`
 ## Step-by-Step Installation Guide
 For a convenient and user-friendly installation follow these steps (installation should take around **5 minutes**):
 
-1. Download the [{{ file_name("_x64_setup.exe") }}]({{ download_url("_x64_setup.exe") }}) (Windows 10 version 22H2 or Windows 11, 64-bit). The download will take around a minute depending on your internet connection.
+1. Download the {{ download_link("_x64_setup.exe") }} (Windows 10 version 22H2 or Windows 11, 64-bit). The download will take around a minute depending on your internet connection.
 
 2. After the download finished open a Windows explorer window and navigate to _Downloads_.
 

@@ -1,23 +1,21 @@
 #!/usr/bin/env bash
 # Checks that the download links of the built website and the release files
-# match: every link points to an existing file and every file is linked.
+# match: every link points to a release file and every release file is linked.
 #
-# Usage: tests/check_release_assets.sh <directory with release files> <built website directory>
+# Usage: <release file names, one per line> | tests/check_release_assets.sh <built website directory>
+# e.g.   ls os_specific/dist | tests/check_release_assets.sh site
 set -euo pipefail
 
-if [ $# -ne 2 ]; then
-  echo "Usage: $0 <directory with release files> <built website directory>" >&2
+if [ $# -ne 1 ]; then
+  echo "Usage: <release file names> | $0 <built website directory>" >&2
   exit 2
 fi
-ASSETS_DIR="$1"
-SITE_DIR="$2"
+SITE_DIR="$1"
 
 # grep fails without a match, which the check below reports
 LINKED_FILES="$( { grep -rhoE 'releases/download/[^"]+' "$SITE_DIR" --include='*.html' || true; } \
   | sed 's|.*/||; s|%2B|+|g' | sort -u)"
-RELEASE_FILES="$(for FILE in "$ASSETS_DIR"/*; do
-  if [ -f "$FILE" ]; then echo "${FILE##*/}"; fi
-done | sort)"
+RELEASE_FILES="$( { grep -v '^$' || true; } | sort -u)"
 
 if [ -z "$LINKED_FILES" ] || [ -z "$RELEASE_FILES" ]; then
   echo "No download links or no release files found." >&2

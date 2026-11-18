@@ -19,18 +19,19 @@ if [ ! -d "$APP_PATH" ]; then
   exit 1
 fi
 
-# The DMG name tells which Macs the app runs on, based on the built app itself
-CMD_MODULES=("$APP_PATH"/Contents/Resources/lib/pymol/_cmd.*.so)
-if [ ! -f "${CMD_MODULES[0]}" ]; then
-  echo "The PyMOL module _cmd.*.so was not found in ${APP_PATH}." >&2
-  exit 1
-fi
-ARCHS="$(lipo -archs "${CMD_MODULES[0]}")"
+# The DMG name tells which Macs the app runs on, based on the built app itself:
+# PyMOL, Qt and numpy must all be built for the same single architecture
+LIB_DIR="$APP_PATH/Contents/Resources/lib"
+ARCHS="$(for MODULE in "$LIB_DIR"/pymol/_cmd.*.so "$LIB_DIR"/PyQt5/QtCore.abi3.so \
+    "$LIB_DIR"/numpy/core/_multiarray_umath.*.so; do
+  lipo -archs "$MODULE" || exit 1
+done | sort -u)"
 case "$ARCHS" in
   arm64) ARCH_LABEL="AppleSilicon" ;;
   x86_64) ARCH_LABEL="Intel" ;;
   *)
-    echo "Unsupported architecture '${ARCHS}' of ${CMD_MODULES[0]} (expected arm64 or x86_64)" >&2
+    echo "PyMOL, Qt and numpy in ${APP_PATH} are built for '${ARCHS//$'\n'/, }'" \
+      "(expected all arm64 or all x86_64)" >&2
     exit 1
     ;;
 esac

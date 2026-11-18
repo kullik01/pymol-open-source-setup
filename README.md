@@ -75,8 +75,9 @@ for all three platforms.
    - Windows: `.\win_automator.bat build inno_setup`
    - Linux: `os_specific/linux/build_packages.sh` (creates the .tar.gz, .deb and .rpm)
    - macOS: `os_specific/macos/build_dmg.sh` (requires [create-dmg](https://github.com/create-dmg/create-dmg):
-     `brew install create-dmg`). The DMG name tells the architecture of the build machine
-     (`_macOS_AppleSilicon.dmg` or `_macOS_Intel.dmg`).
+     `brew install create-dmg`). The DMG name tells the architecture of the built app
+     (`_macOS_AppleSilicon.dmg` or `_macOS_Intel.dmg`); on a Mac it is the architecture of
+     the Python used for the build.
 
 ## Releasing a new version
 The version in [pyproject.toml](pyproject.toml) is the only place to change. The build,

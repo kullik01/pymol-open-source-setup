@@ -93,6 +93,8 @@ jobs:
         with:
           name: PyMOL-Open-Source-Windows-x64-Setup
           path: os_specific/dist/*
+          # The packages are already compressed
+          compression-level: 0
   # --- end
 
   # ----- macOS build section
@@ -148,10 +150,10 @@ jobs:
       - name: Verify DMG
         # Mounts the DMG like a user would and tests the app inside it
         timeout-minutes: 5
-        env:
-          EXPECTED_ARCH: ${{ matrix.arch }}
         run: |
-          DMG="os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_macOS_${{ matrix.label }}.dmg"
+          DMGS=(os_specific/dist/*.dmg)
+          test "${#DMGS[@]}" -eq 1
+          DMG="${DMGS[0]}"
           hdiutil verify "$DMG"
           MOUNT_DIR="$(mktemp -d)"
           hdiutil attach "$DMG" -readonly -nobrowse -mountpoint "$MOUNT_DIR"
@@ -161,10 +163,11 @@ jobs:
           test -f "$MOUNT_DIR/.background/dmg_background.svg"
           APP="$MOUNT_DIR/PyMOL-Open-Source-${PROJECT_VERSION}.app"
           codesign --verify --deep "$APP"
-          # PyMOL, Qt and numpy must be built for the architecture of this DMG
+          # PyMOL, Qt and numpy must be built for the architecture of this runner
           for MODULE in "$APP"/Contents/Resources/lib/{pymol/_cmd.*.so,PyQt5/QtCore.abi3.so,numpy/core/_multiarray_umath.*.so}; do
-            echo "$(lipo -archs "$MODULE")  ${MODULE#"$APP"/}"
-            lipo -archs "$MODULE" | grep -qw "$EXPECTED_ARCH"
+            ARCHS="$(lipo -archs "$MODULE")"
+            echo "${ARCHS}  ${MODULE#"$APP"/}"
+            test "$ARCHS" = "${{ matrix.arch }}"
           done
           tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL"
 
@@ -173,6 +176,8 @@ jobs:
         with:
           name: PyMOL-Open-Source-macOS-${{ matrix.label }}-Setup
           path: os_specific/dist/*.dmg
+          # The packages are already compressed
+          compression-level: 0
   # --- end
 
   # ----- GNU Linux build section
@@ -217,6 +222,8 @@ jobs:
         with:
           name: PyMOL-Open-Source-GNU-Linux-x86_64-Setup
           path: os_specific/dist/*
+          # The packages are already compressed
+          compression-level: 0
 
   # Installs the packages on clean distributions (the package manager has to
   # resolve all declared dependencies) and runs the headless and GUI smoke tests.
@@ -260,15 +267,12 @@ jobs:
         run: tests/test_linux_package.sh packages/*.${{ matrix.package }}
   # --- end
 
-  # ----- Release section
-  # Checks on every run that the website download links and the built files
-  # match. For a version tag it also creates a draft release with all files,
-  # which can be checked and published on GitHub.
-  release:
-    needs: [build-windows, build-macos, build-gnu-linux, test-gnu-linux-packages]
+  # ----- Website section
+  # Builds the website strictly, in parallel to the app builds. For a version
+  # tag it first checks that the tag matches the version, so a wrong tag fails
+  # right at the start.
+  website:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -294,6 +298,32 @@ jobs:
           python -m pip install -r docs/website/requirements.txt
           mkdocs build --strict --config-file docs/website/mkdocs.yml --site-dir "${RUNNER_TEMP}/site"
 
+      - name: Upload website
+        uses: actions/upload-artifact@v6
+        with:
+          name: website
+          path: ${{ runner.temp }}/site
+  # --- end
+
+  # ----- Release section
+  # Checks on every run that the website download links and the built files
+  # match. For a version tag it also creates a draft release with all files,
+  # which can be checked and published on GitHub.
+  release:
+    needs: [website, build-windows, build-macos, build-gnu-linux, test-gnu-linux-packages]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Download website
+        uses: actions/download-artifact@v7
+        with:
+          name: website
+          path: site
+
       - name: Download packages
         uses: actions/download-artifact@v7
         with:
@@ -302,7 +332,7 @@ jobs:
           merge-multiple: true
 
       - name: Check website download links against the packages
-        run: tests/check_release_assets.sh release-files "${RUNNER_TEMP}/site"
+        run: ls release-files | tests/check_release_assets.sh site
 
       - name: Create draft release
         if: startsWith(github.ref, 'refs/tags/v')

@@ -7,8 +7,8 @@ For a convenient and user-friendly installation follow these steps
 ### Step 1 - Download .dmg
 Open-Source PyMOL requires macOS 12 (Monterey) or newer. Download the DMG for your Mac:
 
-- Apple Silicon (M1, M2, M3, ...): [{{ file_name("_macOS_AppleSilicon.dmg") }}]({{ download_url("_macOS_AppleSilicon.dmg") }})
-- Intel: [{{ file_name("_macOS_Intel.dmg") }}]({{ download_url("_macOS_Intel.dmg") }})
+- Apple Silicon (M1, M2, M3, ...): {{ download_link("_macOS_AppleSilicon.dmg") }}
+- Intel: {{ download_link("_macOS_Intel.dmg") }}
 
 Not sure which Mac you have? Open the Apple menu and choose _About This Mac_:
 "Chip: Apple M..." means Apple Silicon, "Processor: ... Intel ..." means Intel.

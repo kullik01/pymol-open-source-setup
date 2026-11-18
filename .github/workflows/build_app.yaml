@@ -205,11 +205,16 @@ jobs:
           - { image: 'rockylinux/rockylinux:9', package: 'rpm' }
           - { image: 'almalinux:8', package: 'rpm' }
           - { image: 'registry.opensuse.org/opensuse/tumbleweed:latest', package: 'rpm' }
-          - { image: 'registry.opensuse.org/opensuse/leap:15.6', package: 'rpm' }
+          # The Leap image has no tar, which actions/checkout needs
+          - { image: 'registry.opensuse.org/opensuse/leap:15.6', package: 'rpm', setup: 'zypper --non-interactive install tar gzip' }
     name: test-gnu-linux-packages (${{ matrix.image }})
     runs-on: ubuntu-latest
     container: ${{ matrix.image }}
     steps:
+      - name: Install checkout prerequisites
+        if: matrix.setup
+        run: ${{ matrix.setup }}
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:

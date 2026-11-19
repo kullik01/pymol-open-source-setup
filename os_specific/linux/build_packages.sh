@@ -62,7 +62,8 @@ RPM_SONAMES=("${RPM_SONAMES[@]/%/()(64bit)}")
 FPM_ARGS=(
   -s dir
   --version "$VERSION"
-  --license "BSD-3-Clause"
+  # This project's code (BSD-3-Clause), the bundled Qt/PySide6 (LGPL-3.0) and PyMOL (its own license)
+  --license "BSD-3-Clause AND LGPL-3.0-only AND LicenseRef-PyMOL"
   --maintainer "Hannah Kullik <hannah.kullik@studmail.w-hs.de>, Martin Urban <martin.urban@studmail.w-hs.de>"
   --vendor "Hannah Kullik, Martin Urban"
   --url "https://kullik01.github.io/pymol-open-source-setup"

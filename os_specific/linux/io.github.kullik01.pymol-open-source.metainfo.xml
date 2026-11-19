@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream metadata: description and screenshot in software centers such as GNOME Software
+     and KDE Discover. build_packages.sh fills in @VERSION@ and @DATE@. -->
+<component type="desktop-application">
+  <id>io.github.kullik01.pymol-open-source</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <name>Open-Source PyMOL</name>
+  <summary>Visualize and animate 3D molecular structures</summary>
+  <developer id="io.github.kullik01">
+    <name>Hannah Kullik, Martin Urban</name>
+  </developer>
+  <description>
+    <p>
+      PyMOL is a Python-enhanced molecular graphics tool. It excels at 3D visualization of
+      proteins, small molecules, density, surfaces and trajectories. It also includes molecular
+      editing, ray tracing and movies.
+    </p>
+    <p>
+      This is an unofficial, ready-to-run build of the open-source PyMOL. It can download
+      structures directly from the Protein Data Bank (PDB).
+    </p>
+  </description>
+  <launchable type="desktop-id">open-source-pymol.desktop</launchable>
+  <provides>
+    <binary>Open-Source-PyMOL</binary>
+  </provides>
+  <categories>
+    <category>Education</category>
+    <category>Chemistry</category>
+  </categories>
+  <url type="homepage">https://kullik01.github.io/pymol-open-source-setup/</url>
+  <url type="bugtracker">https://github.com/kullik01/pymol-open-source-setup/issues</url>
+  <url type="vcs-browser">https://github.com/kullik01/pymol-open-source-setup</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>A protein structure in the PyMOL main window</caption>
+      <image>https://kullik01.github.io/pymol-open-source-setup/assets/images/image_1.png</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="@VERSION@" date="@DATE@"/>
+  </releases>
+</component>

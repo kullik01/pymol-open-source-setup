@@ -30,6 +30,9 @@ mkdir -p "$OUT_DIR"
 sed "s|/opt/open-source-pymol|${INSTALL_DIR}|g" \
   os_specific/linux/open-source-pymol.desktop > "$STAGING_DIR/open-source-pymol.desktop"
 ln -s "${INSTALL_DIR}/Open-Source-PyMOL" "$STAGING_DIR/Open-Source-PyMOL"
+METAINFO="io.github.kullik01.pymol-open-source.metainfo.xml"
+sed -e "s|@VERSION@|${VERSION}|" -e "s|@DATE@|$(date -u +%F)|" \
+  "os_specific/linux/${METAINFO}" > "$STAGING_DIR/${METAINFO}"
 
 # System libraries that are not bundled: OpenGL, GLib, D-Bus, fonts and the
 # X11/XCB/Wayland libraries of the Qt platform plugins, plus the CA certificates
@@ -71,6 +74,8 @@ PACKAGE_CONTENTS=(
   "${FROZEN_APP_DIR}/=${INSTALL_DIR}/"
   "$STAGING_DIR/Open-Source-PyMOL=/usr/bin/Open-Source-PyMOL"
   "$STAGING_DIR/open-source-pymol.desktop=/usr/share/applications/open-source-pymol.desktop"
+  "os_specific/linux/logo.png=/usr/share/pixmaps/open-source-pymol.png"
+  "$STAGING_DIR/${METAINFO}=/usr/share/metainfo/${METAINFO}"
 )
 
 # Portable archive: extracts into a single PyMOL-Open-Source-<version>/ directory

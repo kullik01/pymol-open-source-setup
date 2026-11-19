@@ -20,11 +20,15 @@ import traceback
 import urllib.error
 import urllib.request
 
+# On a crash (e.g. in the OpenGL driver) print the Python stacks of all threads.
+# Enable it before importing PyMOL, which replaces sys.stderr with an object without fileno().
+try:
+  faulthandler.enable(file=sys.__stderr__)
+except (AttributeError, ValueError, OSError):
+  pass  # no usable stderr (e.g. a GUI executable without console)
+
 import pymol
 from pymol import cmd
-
-# On a crash (e.g. in the OpenGL driver) print the Python stacks of all threads
-faulthandler.enable()
 
 
 def check_bundled_modules_and_data() -> None:

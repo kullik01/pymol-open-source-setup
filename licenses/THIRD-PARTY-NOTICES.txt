@@ -43,6 +43,7 @@ Native libraries of the Linux build (bundled by cx_Freeze/freeze-core):
     FreeType              FreeType License (BSD-style)
     Fontconfig, Xft       MIT-style licenses
     libuuid               BSD license
+    libxcb-cursor         MIT license (bundled for Qt's X11 support)
 
 OpenBLAS, libgfortran and libquadmath (bundled by numpy)
     Covered by numpy/LICENSE.txt.

@@ -229,11 +229,11 @@ jobs:
           codesign --verify --deep "$APP"
           plutil -lint "$APP/Contents/Info.plist"
           test "$(plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source"
-          # PyMOL, Qt and numpy must be built for the architecture of this runner
-          for MODULE in "$APP"/Contents/Resources/lib/{pymol/_cmd.*.so,PyQt5/QtCore.abi3.so,numpy/core/_multiarray_umath.*.so}; do
+          # PyMOL, Qt and numpy must contain the architecture of this runner (Qt is universal)
+          for MODULE in "$APP"/Contents/Resources/lib/{pymol/_cmd.*.so,PySide6/QtCore.abi3.so,numpy/core/_multiarray_umath.*.so}; do
             ARCHS="$(lipo -archs "$MODULE")"
             echo "${ARCHS}  ${MODULE#"$APP"/}"
-            test "$ARCHS" = "${{ matrix.arch }}"
+            grep -qw "${{ matrix.arch }}" <<< "$ARCHS"
           done
           tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL"
 
@@ -266,6 +266,12 @@ jobs:
           python -m venv .venv
           .venv/bin/python -m pip install wheel setuptools
           .venv/bin/python -m pip install -r os_specific/linux/requirements.txt
+
+      - name: Install libxcb-cursor
+        # Bundled into the app for Qt's X11 support (RHEL/Alma 8 only have it in EPEL)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libxcb-cursor0
 
       - name: Build frozen application
         run: ./automator.sh build app

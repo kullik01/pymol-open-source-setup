@@ -94,10 +94,10 @@ jobs:
       - name: Install Inno Setup
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe -OutFile "$env:RUNNER_TEMP\innosetup.exe"
+          Invoke-WebRequest -Uri https://github.com/jrsoftware/issrc/releases/download/is-7_1_1/innosetup-7.1.1-x64.exe -OutFile "$env:RUNNER_TEMP\innosetup.exe"
           # SHA-256 published by GitHub for the release file
           $hash = (Get-FileHash "$env:RUNNER_TEMP\innosetup.exe" -Algorithm SHA256).Hash
-          if ($hash -ne '9c73c3bae7ed48d44112a0f48e66742c00090bdb5bef71d9d3c056c66e97b732') { throw "Unexpected SHA-256 of the Inno Setup installer: $hash" }
+          if ($hash -ne '8a5a6711c3766a6e5fb74f280ba0e3551e719ce94538d901fdbd1f8f9920b3f0') { throw "Unexpected SHA-256 of the Inno Setup installer: $hash" }
           Start-Process -FilePath "$env:RUNNER_TEMP\innosetup.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait
 
       - name: Build frozen application

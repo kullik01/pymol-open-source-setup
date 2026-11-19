@@ -27,6 +27,8 @@ OutputBaseFilename=PyMOL-Open-Source_v{#MyAppVersion}_x64_setup
 DisableDirPage=True
 DisableProgramGroupPage=True
 DisableReadyPage=True
+; A 64-bit installer (Inno Setup 7) for the 64-bit app
+SetupArchitecture=x64
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 WizardStyle=modern

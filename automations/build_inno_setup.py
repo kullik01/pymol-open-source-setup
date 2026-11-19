@@ -23,7 +23,12 @@ import const
 import utils
 
 
-DEFAULT_ISCC_FILEPATH = pathlib.Path(r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe")
+# Default locations of the 64-bit and 32-bit editions of Inno Setup 7. They come before the PATH,
+# which may contain an older Inno Setup (e.g. on the GitHub runners).
+ISCC_FILEPATHS = [
+  pathlib.Path(r"C:\Program Files\Inno Setup 7\ISCC.exe"),
+  pathlib.Path(r"C:\Program Files (x86)\Inno Setup 7\ISCC.exe"),
+]
 INNO_SETUP_SCRIPT_FILEPATH = const.PROJECT_ROOT_DIR / "os_specific" / "windows" / "inno_setup" / "setup.iss"
 
 
@@ -38,9 +43,9 @@ def build() -> None:
   if not tmp_frozen_app_dir.exists():
     sys.exit(f"{tmp_frozen_app_dir} does not exist. Run 'build app' first.")
 
-  tmp_iscc_filepath = shutil.which("ISCC") or DEFAULT_ISCC_FILEPATH
-  if not pathlib.Path(tmp_iscc_filepath).exists():
-    sys.exit("Inno Setup 6 compiler (ISCC.exe) not found. Install Inno Setup 6 or add it to the PATH.")
+  tmp_iscc_filepath = next((tmp_path for tmp_path in ISCC_FILEPATHS if tmp_path.exists()), None) or shutil.which("ISCC")
+  if tmp_iscc_filepath is None:
+    sys.exit("Inno Setup 7 compiler (ISCC.exe) not found. Install Inno Setup 7 or add it to the PATH.")
 
   utils.run([
     tmp_iscc_filepath,

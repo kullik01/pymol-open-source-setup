@@ -96,6 +96,8 @@ jobs:
         env:
           # The runner has no GPU (only OpenGL 1.1): use Qt's bundled software OpenGL
           QT_OPENGL: software
+          QT_DEBUG_PLUGINS: "1"
+          QT_LOGGING_RULES: "qt.qpa.*=true;qt.opengl.*=true"
         run: tests/run_smoke_test.sh --gui "dist/exe.win-amd64-${PYTHON_VERSION}/Open-Source-PyMOL.exe"
 
       - name: Build installer

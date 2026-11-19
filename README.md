@@ -32,7 +32,18 @@ for **all major** operating systems.
 Please note that the files provided here are **unofficial**. They are informal, unrecognized, and unsupported, offered for testing and evaluation purposes only. No warranty or liability is provided, and the software is made available "as-is."
 
 ## Contents of this repository
-"Insert some more information here"
+| Folder | Content |
+|--------|---------|
+| `automations/` | Build commands (`./automator.sh build app`, `.\win_automator.bat build inno_setup`) |
+| `os_specific/` | cx_Freeze configuration, requirements and packaging per platform (Inno Setup, DMG, .deb/.rpm/.tar.gz) |
+| `edited/` | PyMOL files changed for this setup (marked `BEGIN EDITED CODE SEGMENT`) and the start script |
+| `licenses/` | License texts shipped with every package |
+| `tests/` | Smoke tests of the frozen app and checks of the packages |
+| `docs/website/` | The [website](https://kullik01.github.io/pymol-open-source-setup/) (MkDocs) |
+
+The version of the packages (e.g. 3.1.0.4+4) is the version of the PyMOL wheel plus a build number of
+this setup. The application itself shows the version of the PyMOL core it is built from (currently
+3.2.0a, a development version).
 
 ## From source
 The following information is about building a platform dependent package/setup from source.

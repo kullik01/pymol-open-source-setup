@@ -1,5 +1,5 @@
 # Download Open-Source PyMOL
-Current version: **{{ version }}**
+Current version: **{{ version }}** (the application shows the version of its PyMOL core, e.g. 3.2.0a)
 
 ## Windows
 Requires Windows 10 (version 22H2) or Windows 11, 64-bit.

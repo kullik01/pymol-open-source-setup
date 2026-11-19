@@ -1,8 +1,6 @@
 import os
 import sys
 
-import pymol
-
 # System certificate files (CA bundles), in the order they are tried
 CA_BUNDLE_FILEPATHS = {
   "darwin": ("/etc/ssl/cert.pem",),
@@ -25,6 +23,8 @@ def _use_system_ca_certificates() -> None:
   the same problem. Windows uses the Windows certificate store instead.
 
   Nothing is changed if the user already set SSL_CERT_FILE or SSL_CERT_DIR.
+  Must run before ssl is imported: cx_Freeze's ssl hook then keeps this file
+  instead of the certificate file it copied from the build machine.
   """
   if os.environ.get("SSL_CERT_FILE") or os.environ.get("SSL_CERT_DIR"):
     return
@@ -45,4 +45,5 @@ if __name__ == '__main__':
   _use_system_ca_certificates()
   _use_pyside6()
 
+  import pymol  # only after the environment is set up (imports ssl)
   pymol.launch(sys.argv)

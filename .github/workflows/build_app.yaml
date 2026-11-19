@@ -73,6 +73,9 @@ jobs:
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe -OutFile "$env:RUNNER_TEMP\innosetup.exe"
+          # SHA-256 published by GitHub for the release file
+          $hash = (Get-FileHash "$env:RUNNER_TEMP\innosetup.exe" -Algorithm SHA256).Hash
+          if ($hash -ne '9c73c3bae7ed48d44112a0f48e66742c00090bdb5bef71d9d3c056c66e97b732') { throw "Unexpected SHA-256 of the Inno Setup installer: $hash" }
           Start-Process -FilePath "$env:RUNNER_TEMP\innosetup.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait
 
       - name: Build frozen application
@@ -196,7 +199,14 @@ jobs:
           codesign --verify --deep "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app"
 
       - name: Install create-dmg
-        run: brew install create-dmg
+        env:
+          CREATE_DMG_VERSION: "1.3.0"
+          CREATE_DMG_SHA256: "c50d2bc97c3d6292642bac55f530d247eaf4bf65ee605f26b4caf339383e381c"
+        run: |
+          curl -fsSL -o "${RUNNER_TEMP}/create-dmg.tar.gz" "https://github.com/create-dmg/create-dmg/archive/refs/tags/v${CREATE_DMG_VERSION}.tar.gz"
+          echo "${CREATE_DMG_SHA256}  ${RUNNER_TEMP}/create-dmg.tar.gz" | shasum -a 256 -c -
+          tar -xzf "${RUNNER_TEMP}/create-dmg.tar.gz" -C "${RUNNER_TEMP}"
+          echo "CREATE_DMG=${RUNNER_TEMP}/create-dmg-${CREATE_DMG_VERSION}/create-dmg" >> "$GITHUB_ENV"
 
       - name: Build DMG
         run: os_specific/macos/build_dmg.sh
@@ -268,7 +278,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq rpm
-          sudo gem install --no-document fpm
+          sudo gem install --no-document fpm -v 1.18.0
 
       - name: Build .tar.gz, .deb and .rpm packages
         run: os_specific/linux/build_packages.sh

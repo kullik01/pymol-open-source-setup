@@ -3,7 +3,7 @@
 # into os_specific/dist. Run "./automator.sh build app" first.
 #
 # Usage: os_specific/macos/build_dmg.sh
-# Requires create-dmg (brew install create-dmg).
+# Requires create-dmg (brew install create-dmg); CREATE_DMG can point to another copy.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -36,7 +36,8 @@ case "$ARCHS" in
     ;;
 esac
 DMG_NAME="${APP_NAME}_v${VERSION}_macOS_${ARCH_LABEL}"
-if ! command -v create-dmg > /dev/null; then
+CREATE_DMG="${CREATE_DMG:-create-dmg}"
+if ! command -v "$CREATE_DMG" > /dev/null; then
   echo "create-dmg not found. Install it with: brew install create-dmg" >&2
   exit 1
 fi
@@ -46,7 +47,7 @@ mkdir -p "$OUT_DIR"
 for ATTEMPT in 1 2 3; do
   hdiutil detach "/Volumes/${DMG_NAME}" > /dev/null 2>&1 || true
   rm -f "${OUT_DIR}/${DMG_NAME}.dmg" "${OUT_DIR}"/rw.*.dmg
-  if create-dmg \
+  if "$CREATE_DMG" \
       --volname "$DMG_NAME" \
       --background os_specific/macos/dmg/dmg_background.svg \
       --window-pos 200 120 \

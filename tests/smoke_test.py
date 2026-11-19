@@ -45,7 +45,7 @@ def check_licenses() -> None:
   licenses_dir = next((d for d in candidates if d.is_dir()), None)
   assert licenses_dir is not None, f"licenses folder missing next to {exe_dir}"
   for tmp_name in ("README.txt", "THIRD-PARTY-NOTICES.txt", "pymol-open-source-whl/LICENSE",
-                   "PyQt5/GPL-3.0.txt", "PyQt5-Qt5/LICENSE", "Python/LICENSE.txt"):
+                   "LGPL-3.0.txt", "PySide6_Essentials/LGPL-3.0.txt", "Python/LICENSE.txt"):
     assert (licenses_dir / tmp_name).is_file(), f"license file missing: {tmp_name}"
   if sys.platform == "win32":
     assert (exe_dir / "share" / "licenses" / "vc_redist").is_dir(), "license of the C++ runtime missing"
@@ -98,7 +98,14 @@ def check_gui(a_tmp_dir: str) -> str:
   tmp_png = os.path.join(a_tmp_dir, "opengl.png")
   cmd.png(tmp_png, width=200, height=150, ray=0)
   assert os.path.getsize(tmp_png) > 1000, "OpenGL rendered image is empty"
-  return f"GUI, Qt platform {tmp_app.platformName()}"
+  # PyMOL's dialogs are .ui forms, loaded with the Qt binding's UI loader
+  import pmg_qt.pymol_qt_gui
+  from pymol.Qt import PYQT_NAME, utils
+  # Same path as PyMOL's own dialogs (pmg_qt/pymol_qt_gui.py)
+  tmp_form = os.path.join(os.path.dirname(pmg_qt.pymol_qt_gui.__file__), "forms", "fetch.ui")
+  tmp_widget = QtWidgets.QWidget()
+  assert utils.loadUi(tmp_form, tmp_widget) is not None, "loading a .ui form failed"
+  return f"GUI, {PYQT_NAME}, Qt platform {tmp_app.platformName()}"
 
 
 try:

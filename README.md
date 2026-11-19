@@ -45,6 +45,8 @@ The version of the packages (e.g. 3.1.0.4+4) is the version of the PyMOL wheel p
 this setup. The application itself shows the version of the PyMOL core it is built from (currently
 3.2.0a, a development version).
 
+The GUI uses Qt 6 (PySide6 6.9) and runs natively on Wayland; `QT_QPA_PLATFORM=xcb` selects XWayland.
+
 ## From source
 The following information is about building a platform dependent package/setup from source.
 The GitHub action [build_app.yaml](.github/workflows/build_app.yaml) runs exactly these steps

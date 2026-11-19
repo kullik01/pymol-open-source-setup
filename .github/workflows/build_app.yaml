@@ -39,6 +39,8 @@ env:
   PIP_DEFAULT_TIMEOUT: "60"
   PIP_RETRIES: "10"
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  # The smoke tests also download a structure from the PDB (HTTPS)
+  PYMOL_SMOKE_TEST_ONLINE: "1"
 
 jobs:
   # ----- Windows build section

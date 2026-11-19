@@ -4,13 +4,20 @@ Run it with the frozen executable, use tests/run_smoke_test.sh:
   headless:          tests/run_smoke_test.sh <executable>
   with the Qt GUI:   tests/run_smoke_test.sh --gui <executable>   (needs a display, e.g. Xvfb)
 
+With PYMOL_SMOKE_TEST_ONLINE=1 it also downloads a structure from the PDB (HTTPS).
+Note: the certificate check fails if only SSL_CERT_DIR is set (lazily loaded).
+
 Prints "SMOKE TEST OK" on success, otherwise exits with status 1.
 """
 import os
 import pathlib
 import sys
+import ssl
 import tempfile
+import time
 import traceback
+import urllib.error
+import urllib.request
 
 import pymol
 from pymol import cmd
@@ -44,6 +51,32 @@ def check_licenses() -> None:
     assert (exe_dir / "share" / "licenses" / "vc_redist").is_dir(), "license of the C++ runtime missing"
 
 
+def check_certificates() -> None:
+  """HTTPS needs CA certificates: on Windows from the Windows store, otherwise from the file
+  that startup_wrapper.py sets as SSL_CERT_FILE."""
+  tmp_count = ssl.create_default_context().cert_store_stats()["x509_ca"]
+  assert tmp_count > 0, f"no CA certificates loaded (SSL_CERT_FILE={os.environ.get('SSL_CERT_FILE')})"
+
+
+def check_online(a_tmp_dir: str) -> bool:
+  """Downloads a structure from the PDB. Returns False if the online check is switched off."""
+  if os.environ.get("PYMOL_SMOKE_TEST_ONLINE") != "1":
+    return False
+  # cmd.fetch reports every error the same way, so check the HTTPS connection first:
+  # a certificate error fails at once, network problems get retried
+  for tmp_attempt in range(1, 4):
+    try:
+      urllib.request.urlopen("https://files.rcsb.org/header/1UBQ.cif", timeout=30).read(64)
+      break
+    except urllib.error.URLError as tmp_error:
+      if isinstance(tmp_error.reason, ssl.SSLError) or tmp_attempt == 3:
+        raise
+      time.sleep(10)
+  cmd.fetch("1ubq", path=a_tmp_dir, type="cif", quiet=1)
+  assert cmd.count_atoms("1ubq") > 0, "fetch 1ubq loaded no atoms"
+  return True
+
+
 def check_commands(a_tmp_dir: str) -> None:
   cmd.fragment("ala")
   assert cmd.count_atoms() == 10, cmd.count_atoms()
@@ -71,9 +104,12 @@ def check_gui(a_tmp_dir: str) -> str:
 try:
   check_bundled_modules_and_data()
   check_licenses()
+  check_certificates()
   with tempfile.TemporaryDirectory() as tmp_dir:
     check_commands(tmp_dir)
     tmp_mode = check_gui(tmp_dir)
+    if check_online(tmp_dir):
+      tmp_mode += ", online"
 except Exception:
   traceback.print_exc()
   print("SMOKE TEST FAILED", flush=True)

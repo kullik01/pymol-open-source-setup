@@ -14,3 +14,5 @@ repos:
     rev: v1.7.12.25
     hooks:
       - id: actionlint
+        # Also checks the run: scripts, like on the GitHub runner
+        additional_dependencies: [shellcheck-py==0.11.0.1]

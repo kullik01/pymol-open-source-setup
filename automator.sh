@@ -20,7 +20,7 @@ if [ "${1:-}" = "setup" ]; then
         echo "uv is missing, see https://docs.astral.sh/uv/getting-started/installation/" >&2
         exit 1
     fi
-    uv venv --allow-existing --python 3.11 .venv && exec uv pip install --python .venv -r requirements.txt
+    uv venv --allow-existing --python 3.11 .venv && exec uv pip install --compile-bytecode --python .venv -r requirements.txt
 fi
 if [ ! -x ./.venv/bin/python ]; then
     echo "The virtual environment does not exist yet. Create it with: ./automator.sh setup" >&2

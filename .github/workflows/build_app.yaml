@@ -434,7 +434,7 @@ jobs:
           merge-multiple: true
 
       - name: Check website download links against the packages
-        run: ls release-files | tests/check_release_assets.sh site
+        run: (cd release-files && printf '%s\n' *) | tests/check_release_assets.sh site
 
       - name: Create draft release
         if: startsWith(github.ref, 'refs/tags/v')

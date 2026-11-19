@@ -21,7 +21,7 @@ if /i "%~1"=="setup" (
         exit /b 1
     )
     uv venv --allow-existing --python 3.11 .venv || exit /b 1
-    uv pip install --python .venv\Scripts\python.exe -r requirements.txt || exit /b 1
+    uv pip install --compile-bytecode --python .venv\Scripts\python.exe -r requirements.txt || exit /b 1
     exit /b 0
 )
 if not exist .\.venv\Scripts\python.exe (

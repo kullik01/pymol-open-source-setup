@@ -32,6 +32,7 @@ LICENSES_DIR = PROJECT_ROOT_DIR / "licenses"
 RUNTIME_DISTRIBUTIONS = (
   "pymol-open-source-whl", "PySide6-Essentials", "shiboken6", "numpy", "biopython",
   "Pmw", "msgpack", "msgpack-python", "simplejson", "rules",
+  "freeze-core",  # the executable's startup code and the native libraries of cx_Freeze
 )
 # License texts of distributions whose metadata contains none
 EXTRA_LICENSE_FILES = {

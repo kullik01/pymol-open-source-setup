@@ -18,6 +18,7 @@ import importlib.metadata
 import os
 import pathlib
 import shutil
+import subprocess
 import sys
 
 import const
@@ -63,6 +64,36 @@ def bundle_libxcb_cursor() -> None:
     shutil.copy2(tmp_source.resolve(), tmp_qt_lib_dir / "libxcb-cursor.so.0")
 
 
+def is_universal_binary(a_path: pathlib.Path) -> bool:
+  """True for a macOS universal (fat) Mach-O file."""
+  with open(a_path, "rb") as tmp_file:
+    header = tmp_file.read(8)
+  # 0xcafebabe is also the magic of Java class files, which have a large second field
+  return len(header) == 8 and header[:4] == b"\xca\xfe\xba\xbe" and int.from_bytes(header[4:], "big") < 10
+
+
+def thin_macos_app() -> None:
+  """Keeps only the architecture of PyMOL's _cmd module in universal binaries (macOS).
+
+  The PySide6 wheels contain Qt for Intel and Apple Silicon, while each DMG is
+  for one architecture; thinning saves about a third of the DMG size.
+  """
+  for tmp_app in const.DIST_DIR.glob("*.app"):
+    tmp_cmd_module = next(tmp_app.glob("Contents/Resources/lib/pymol/_cmd.*.so"))
+    tmp_arch = subprocess.run(
+      ["lipo", "-archs", str(tmp_cmd_module)], capture_output=True, text=True, check=True
+    ).stdout.strip()
+    if " " in tmp_arch:
+      sys.exit(f"PyMOL's _cmd module is built for several architectures ({tmp_arch}).")
+    tmp_count = 0
+    for tmp_path in tmp_app.rglob("*"):
+      if tmp_path.is_symlink() or not tmp_path.is_file() or not is_universal_binary(tmp_path):
+        continue
+      utils.run(["lipo", tmp_path, "-thin", tmp_arch, "-output", tmp_path])
+      tmp_count += 1
+    print(f"Thinned {tmp_count} universal binaries in {tmp_app.name} to {tmp_arch}")
+
+
 def build() -> None:
   """Builds the frozen application with cx_Freeze into the dist directory.
 
@@ -94,3 +125,5 @@ def build() -> None:
   )
   if const.LINUX:
     bundle_libxcb_cursor()
+  if const.MACOS:
+    thin_macos_app()

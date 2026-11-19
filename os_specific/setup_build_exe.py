@@ -140,6 +140,13 @@ if sys.platform == "win32":
   # 2022 from Microsoft (cached in %APPDATA%\cx_Freeze\vc_redist).
   options["build_exe"]["include_msvcr"] = True
   options["build_exe"]["include_msvcr_version"] = "17"
+  # Qt's software OpenGL (Mesa llvmpipe) for PCs, VMs and remote desktops without a usable
+  # OpenGL driver: Qt falls back to it automatically (or with QT_OPENGL=software).
+  # cx_Freeze copies it only for QtWebEngine. Qt loads it with LoadLibrary, so it must be
+  # next to the executable.
+  options["build_exe"]["include_files"].append(
+    (pathlib.Path(sysconfig.get_path("platlib"), "PySide6", "opengl32sw.dll"), "opengl32sw.dll")
+  )
 
 if sys.platform == "darwin":
   options["build_exe"]["includes"].append("ssl")

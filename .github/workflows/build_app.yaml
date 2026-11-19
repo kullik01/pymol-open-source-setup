@@ -58,7 +58,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-          cache-dependency-path: 'os_specific/windows/requirements.txt'
+          cache-dependency-path: 'requirements.txt'
 
       - name: Extract project version
         run: echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)" >> "$GITHUB_ENV"
@@ -67,7 +67,7 @@ jobs:
         run: |
           python -m venv .venv
           .venv/Scripts/python -m pip install wheel setuptools
-          .venv/Scripts/python -m pip install -r os_specific/windows/requirements.txt
+          .venv/Scripts/python -m pip install -r requirements.txt
 
       - name: Install Inno Setup
         shell: pwsh
@@ -185,7 +185,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-          cache-dependency-path: 'os_specific/macos/requirements.txt'
+          cache-dependency-path: 'requirements.txt'
 
       - name: Extract project version
         run: echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)" >> "$GITHUB_ENV"
@@ -194,7 +194,7 @@ jobs:
         run: |
           python -m venv .venv
           .venv/bin/python -m pip install wheel setuptools
-          .venv/bin/python -m pip install -r os_specific/macos/requirements.txt
+          .venv/bin/python -m pip install -r requirements.txt
 
       - name: Build app bundle
         run: ./automator.sh build app
@@ -271,13 +271,13 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-          cache-dependency-path: 'os_specific/linux/requirements.txt'
+          cache-dependency-path: 'requirements.txt'
 
       - name: Create virtual environment
         run: |
           python -m venv .venv
           .venv/bin/python -m pip install wheel setuptools
-          .venv/bin/python -m pip install -r os_specific/linux/requirements.txt
+          .venv/bin/python -m pip install -r requirements.txt
 
       - name: Install libxcb-cursor
         # Bundled into the app for Qt's X11 support (RHEL/Alma 8 only have it in EPEL)

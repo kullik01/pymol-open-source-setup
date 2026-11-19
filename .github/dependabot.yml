@@ -12,9 +12,7 @@ updates:
 
   - package-ecosystem: "pip"
     directories:
-      - "/os_specific/linux"
-      - "/os_specific/macos"
-      - "/os_specific/windows"
+      - "/"
       - "/docs/website"
     schedule:
       interval: "weekly"

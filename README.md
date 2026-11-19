@@ -35,7 +35,7 @@ Please note that the files provided here are **unofficial**. They are informal, 
 | Folder | Content |
 |--------|---------|
 | `automations/` | Build commands (`./automator.sh build app`, `.\win_automator.bat build inno_setup`) |
-| `os_specific/` | cx_Freeze configuration, requirements and packaging per platform (Inno Setup, DMG, .deb/.rpm/.tar.gz) |
+| `os_specific/` | cx_Freeze configuration and packaging per platform (Inno Setup, DMG, .deb/.rpm/.tar.gz) |
 | `edited/` | PyMOL files changed for this setup (marked `BEGIN EDITED CODE SEGMENT`) and the start script |
 | `licenses/` | License texts shipped with every package |
 | `tests/` | Smoke tests of the frozen app and checks of the packages |
@@ -61,15 +61,15 @@ for all three platforms.
 
 ### Step-by-step guide
 1. Create a virtual environment named `.venv` in the repository root and install the
-   build dependencies of your platform:
+   dependencies (one file for all platforms):
    ```shell
    python3.11 -m venv .venv
-   .venv/bin/python -m pip install -r os_specific/<linux|macos>/requirements.txt
+   .venv/bin/python -m pip install -r requirements.txt
    ```
    On Windows:
    ```shell
    py -3.11 -m venv .venv
-   .venv\Scripts\python.exe -m pip install -r os_specific\windows\requirements.txt
+   .venv\Scripts\python.exe -m pip install -r requirements.txt
    ```
 2. Build the frozen application into the `dist` directory:
    ```shell

@@ -6,7 +6,7 @@ executable nor next to the importing file. Without them the app does not start
 on PCs that have no VC++ Redistributable installed.
 
 Usage: python tests/check_msvc_runtime.py <directory of the frozen app>
-Requires lief (part of os_specific/windows/requirements.txt).
+Requires lief (part of requirements.txt on Windows).
 """
 import pathlib
 import re

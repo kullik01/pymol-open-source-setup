@@ -45,9 +45,16 @@ esac
 
 # Desktop integration: menu entry, icon and software center metadata
 for FILE in /usr/share/applications/open-source-pymol.desktop /usr/share/pixmaps/open-source-pymol.png \
-    /usr/share/metainfo/io.github.kullik01.pymol-open-source.metainfo.xml; do
+    /usr/share/metainfo/io.github.kullik01.pymol-open-source.metainfo.xml \
+    /usr/share/mime/packages/open-source-pymol.xml; do
   test -s "$FILE" || { echo "Missing: $FILE" >&2; exit 1; }
 done
+# The package manager updates the MIME database for the new file types (.cif, .pse),
+# if the shared MIME database is installed
+if [ -f /usr/share/mime/globs2 ]; then
+  grep -q "application/x-pymol-session" /usr/share/mime/globs2 || { echo "MIME database not updated" >&2; exit 1; }
+  echo "MIME types registered"
+fi
 
 EXECUTABLE=/usr/bin/Open-Source-PyMOL
 timeout 300 "$TESTS_DIR/run_smoke_test.sh" "$EXECUTABLE"

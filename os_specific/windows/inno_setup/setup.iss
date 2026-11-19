@@ -38,6 +38,8 @@ LicenseFile=LICENSE.txt
 DiskSpanning=no
 ; Installs per user (into AppData\Roaming), no administrator rights needed
 PrivilegesRequired=lowest
+; Tells Windows about the file types registered below
+ChangesAssociations=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -58,6 +60,18 @@ Source: "{#AppSourceDir}\*"; DestDir: "{app}\bin"; Flags: ignoreversion recurses
 [Icons]
 Name: "{autodesktop}\Open-Source PyMOL"; Filename: "{app}\bin\Open-Source-PyMOL.exe"; IconFilename: "{app}\assets\logo.ico"
 Name: "{autoprograms}\Open-Source PyMOL"; Filename: "{app}\bin\Open-Source-PyMOL.exe"; IconFilename: "{app}\assets\logo.ico"
+
+[Registry]
+; File types (per-user, HKA = HKCU for this per-user installation). PyMOL is offered in "Open with"
+; for .pdb and .cif files without taking them over from other programs, and it opens its own
+; session files (.pse) by double-click.
+Root: HKA; Subkey: "Software\Classes\OpenSourcePyMOL.File"; ValueType: string; ValueName: ""; ValueData: "PyMOL file"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\OpenSourcePyMOL.File\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\assets\logo.ico"
+Root: HKA; Subkey: "Software\Classes\OpenSourcePyMOL.File\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\Open-Source-PyMOL.exe"" ""%1"""
+Root: HKA; Subkey: "Software\Classes\.pdb\OpenWithProgids"; ValueType: string; ValueName: "OpenSourcePyMOL.File"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.cif\OpenWithProgids"; ValueType: string; ValueName: "OpenSourcePyMOL.File"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.pse\OpenWithProgids"; ValueType: string; ValueName: "OpenSourcePyMOL.File"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.pse"; ValueType: string; ValueName: ""; ValueData: "OpenSourcePyMOL.File"; Flags: uninsdeletevalue
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"

@@ -23,6 +23,9 @@
   <launchable type="desktop-id">open-source-pymol.desktop</launchable>
   <provides>
     <binary>Open-Source-PyMOL</binary>
+    <mediatype>chemical/x-pdb</mediatype>
+    <mediatype>chemical/x-cif</mediatype>
+    <mediatype>application/x-pymol-session</mediatype>
   </provides>
   <categories>
     <category>Education</category>

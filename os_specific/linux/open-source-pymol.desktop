@@ -9,3 +9,4 @@ StartupNotify=false
 StartupWMClass=PyMOL
 Categories=Education;Chemistry;
 Keywords=pymol;
+MimeType=chemical/x-pdb;chemical/x-cif;application/x-pymol-session;

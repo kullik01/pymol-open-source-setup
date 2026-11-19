@@ -159,6 +159,12 @@ jobs:
           $key = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{192F52C3-D86D-4735-9929-C7DF593CB534}_is1'
           $version = (Get-ItemProperty $key).DisplayVersion
           if ($version -ne $env:PROJECT_VERSION) { throw "Uninstall entry has version '$version'" }
+          # File types: the open command starts the installed app
+          $command = (Get-ItemProperty 'HKCU:\Software\Classes\OpenSourcePyMOL.File\shell\open\command').'(default)'
+          if ($command -ne "`"$exe`" `"%1`"") { throw "Unexpected open command: $command" }
+          foreach ($ext in '.pdb', '.cif', '.pse') {
+            if ($null -eq (Get-ItemProperty "HKCU:\Software\Classes\$ext\OpenWithProgids").'OpenSourcePyMOL.File') { throw "$ext not registered" }
+          }
           "INSTALLED_APP=$exe" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
 
       - name: Smoke test of the installed app
@@ -178,6 +184,7 @@ jobs:
             if (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk')) { throw "Shortcut left in $folder" }
           }
           if (Test-Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{192F52C3-D86D-4735-9929-C7DF593CB534}_is1') { throw "Uninstall entry left" }
+          if (Test-Path 'HKCU:\Software\Classes\OpenSourcePyMOL.File') { throw "File type registration left" }
 
       - name: Create portable archive
         run: 7z a -tzip -bso0 -bsp0 "os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_x64_portable.zip" "./dist/exe.win-amd64-${PYTHON_VERSION}/*"
@@ -274,6 +281,8 @@ jobs:
           codesign --verify --deep "$APP"
           plutil -lint "$APP/Contents/Info.plist"
           test "$(plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source"
+          # File types (.pdb, .cif, .pse) that open with PyMOL in Finder
+          test "$(plutil -extract CFBundleDocumentTypes.1.LSItemContentTypes.0 raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source.pse"
           # PyMOL, Qt and numpy must contain the architecture of this runner (Qt is universal)
           for MODULE in "$APP"/Contents/Resources/lib/{pymol/_cmd.*.so,PySide6/QtCore.abi3.so,numpy/_core/_multiarray_umath.*.so}; do
             ARCHS="$(lipo -archs "$MODULE")"

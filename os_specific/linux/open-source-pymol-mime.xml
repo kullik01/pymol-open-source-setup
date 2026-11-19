@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- File types that the shared MIME database does not know yet (it knows chemical/x-pdb).
+     Installed as /usr/share/mime/packages/open-source-pymol.xml. -->
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="chemical/x-cif">
+    <comment>Crystallographic Information File</comment>
+    <glob pattern="*.cif"/>
+  </mime-type>
+  <mime-type type="application/x-pymol-session">
+    <comment>PyMOL session</comment>
+    <glob pattern="*.pse"/>
+  </mime-type>
+</mime-info>

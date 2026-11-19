@@ -5,8 +5,14 @@ For a convenient and user-friendly installation follow these steps
 (installation should take around **1 minute**):
 
 ### Step 1 - Download .dmg
-Download Open-Source PyMOL by clicking [here](https://github.com/kullik01/pymol-open-source-setup/releases). 
-The download will start automatically and will take around a minute to download depending on your internet connection.
+Open-Source PyMOL requires macOS 12 (Monterey) or newer. Download the DMG for your Mac:
+
+- Apple Silicon (M1, M2, M3, ...): {{ download_link("_macOS_AppleSilicon.dmg") }}
+- Intel: {{ download_link("_macOS_Intel.dmg") }}
+
+Not sure which Mac you have? Open the Apple menu and choose _About This Mac_:
+"Chip: Apple M..." means Apple Silicon, "Processor: ... Intel ..." means Intel.
+The download will take around a minute depending on your internet connection.
 
 ### Step 2 - Navigate to the Downloads folder
 After the download finished open a Finder window and navigate to _Downloads_.

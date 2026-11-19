@@ -19,6 +19,9 @@ on:
     branches:
       - master
       - main
+    # A version tag (v<version from pyproject.toml>) creates a draft release
+    tags:
+      - 'v*'
   pull_request:
   workflow_dispatch:
 
@@ -26,6 +29,9 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
 
 env:
   PYTHON_VERSION: "3.11"
@@ -87,13 +93,21 @@ jobs:
         with:
           name: PyMOL-Open-Source-Windows-x64-Setup
           path: os_specific/dist/*
+          # The packages are already compressed
+          compression-level: 0
   # --- end
 
   # ----- macOS build section
   build-macos:
-    # macos-13 is unsupported due to a bug in create-dmg
-    # macos-14 runner images were retired by GitHub
-    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: macos-15, arch: arm64, label: AppleSilicon }
+          # Last Intel (x86_64) runner image of GitHub, supported until August 2027
+          - { runner: macos-15-intel, arch: x86_64, label: Intel }
+    name: build-macos (${{ matrix.label }})
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -137,7 +151,9 @@ jobs:
         # Mounts the DMG like a user would and tests the app inside it
         timeout-minutes: 5
         run: |
-          DMG="os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}.dmg"
+          DMGS=(os_specific/dist/*.dmg)
+          test "${#DMGS[@]}" -eq 1
+          DMG="${DMGS[0]}"
           hdiutil verify "$DMG"
           MOUNT_DIR="$(mktemp -d)"
           hdiutil attach "$DMG" -readonly -nobrowse -mountpoint "$MOUNT_DIR"
@@ -147,13 +163,21 @@ jobs:
           test -f "$MOUNT_DIR/.background/dmg_background.svg"
           APP="$MOUNT_DIR/PyMOL-Open-Source-${PROJECT_VERSION}.app"
           codesign --verify --deep "$APP"
+          # PyMOL, Qt and numpy must be built for the architecture of this runner
+          for MODULE in "$APP"/Contents/Resources/lib/{pymol/_cmd.*.so,PyQt5/QtCore.abi3.so,numpy/core/_multiarray_umath.*.so}; do
+            ARCHS="$(lipo -archs "$MODULE")"
+            echo "${ARCHS}  ${MODULE#"$APP"/}"
+            test "$ARCHS" = "${{ matrix.arch }}"
+          done
           tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6
         with:
-          name: PyMOL-Open-Source-macOS-macos-15-Setup
+          name: PyMOL-Open-Source-macOS-${{ matrix.label }}-Setup
           path: os_specific/dist/*.dmg
+          # The packages are already compressed
+          compression-level: 0
   # --- end
 
   # ----- GNU Linux build section
@@ -198,6 +222,8 @@ jobs:
         with:
           name: PyMOL-Open-Source-GNU-Linux-x86_64-Setup
           path: os_specific/dist/*
+          # The packages are already compressed
+          compression-level: 0
 
   # Installs the packages on clean distributions (the package manager has to
   # resolve all declared dependencies) and runs the headless and GUI smoke tests.
@@ -239,4 +265,91 @@ jobs:
         timeout-minutes: 15
         shell: bash
         run: tests/test_linux_package.sh packages/*.${{ matrix.package }}
+  # --- end
+
+  # ----- Website section
+  # Builds the website strictly, in parallel to the app builds. For a version
+  # tag it first checks that the tag matches the version, so a wrong tag fails
+  # right at the start.
+  website:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Check that the tag matches the version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)"
+          if [ "$GITHUB_REF_NAME" != "v${VERSION}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match version ${VERSION} in pyproject.toml" >&2
+            exit 1
+          fi
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: 'docs/website/requirements.txt'
+
+      - name: Build website
+        run: |
+          python -m pip install -r docs/website/requirements.txt
+          mkdocs build --strict --config-file docs/website/mkdocs.yml --site-dir "${RUNNER_TEMP}/site"
+
+      - name: Upload website
+        uses: actions/upload-artifact@v6
+        with:
+          name: website
+          path: ${{ runner.temp }}/site
+  # --- end
+
+  # ----- Release section
+  # Checks on every run that the website download links and the built files
+  # match. For a version tag it also creates a draft release with all files,
+  # which can be checked and published on GitHub.
+  release:
+    needs: [website, build-windows, build-macos, build-gnu-linux, test-gnu-linux-packages]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Download website
+        uses: actions/download-artifact@v7
+        with:
+          name: website
+          path: site
+
+      - name: Download packages
+        uses: actions/download-artifact@v7
+        with:
+          pattern: PyMOL-Open-Source-*
+          path: release-files
+          merge-multiple: true
+
+      - name: Check website download links against the packages
+        run: ls release-files | tests/check_release_assets.sh site
+
+      - name: Create draft release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Empty if there is no release for the tag yet (the list includes drafts)
+          IS_DRAFT="$(gh release list --limit 100 --json tagName,isDraft \
+            --jq ".[] | select(.tagName == \"${GITHUB_REF_NAME}\") | .isDraft")"
+          if [ -z "$IS_DRAFT" ]; then
+            gh release create "$GITHUB_REF_NAME" release-files/* \
+              --draft --verify-tag --generate-notes --title "Release ${GITHUB_REF_NAME}"
+          elif [ "$IS_DRAFT" = "true" ]; then
+            # A re-run replaces the files of the draft release
+            gh release upload "$GITHUB_REF_NAME" release-files/* --clobber
+          else
+            echo "Release ${GITHUB_REF_NAME} is already published; its files are not replaced." >&2
+            exit 1
+          fi
   # --- end

@@ -21,6 +21,7 @@ for **all major** operating systems.
 * [From source](#From-source)
     * [Prerequisites](#Prerequisites)
     * [Step-by-step guide](#Step-by-step-guide)
+* [Releasing a new version](#Releasing-a-new-version)
 * [License](#License)
 * [Acknowledgements](#Acknowledgements)
 <!--* [References and useful links](#References-and-useful-links) -->
@@ -74,7 +75,28 @@ for all three platforms.
    - Windows: `.\win_automator.bat build inno_setup`
    - Linux: `os_specific/linux/build_packages.sh` (creates the .tar.gz, .deb and .rpm)
    - macOS: `os_specific/macos/build_dmg.sh` (requires [create-dmg](https://github.com/create-dmg/create-dmg):
-     `brew install create-dmg`)
+     `brew install create-dmg`). The DMG name tells the architecture of the built app
+     (`_macOS_AppleSilicon.dmg` or `_macOS_Intel.dmg`); on a Mac it is the architecture of
+     the Python used for the build.
+
+## Releasing a new version
+The version in [pyproject.toml](pyproject.toml) is the only place to change. The build,
+the file names and the website (version, file names and download links) all use it.
+
+1. Change the version in `pyproject.toml` in a pull request and merge it.
+2. Tag the merged commit on `main` with the version and push the tag:
+   ```shell
+   git tag v<version> && git push origin v<version>
+   ```
+3. The GitHub action builds and tests everything and creates a **draft** release with
+   all files. It fails if the tag does not match the version or if the website download
+   links do not match the built files.
+4. Check the draft on the [releases page](https://github.com/kullik01/pymol-open-source-setup/releases)
+   and publish it. Publishing the release also publishes the website.
+
+The website is only published for published releases. To publish website changes
+without a release, run the "Build Docs" action manually (Actions > Build Docs > Run workflow)
+on the tag of the latest release or on `main` (only if its version is already released).
 
 ## License
 Copyright (c) [Schrodinger, LLC](https://www.schrodinger.com/)

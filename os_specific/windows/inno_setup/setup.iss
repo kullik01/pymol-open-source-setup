@@ -47,14 +47,10 @@ Name: "{app}\bin"
 [Files]
 Source: "..\logo.ico"; DestDir: "{app}\assets"; Flags: ignoreversion
 Source: "{#AppSourceDir}\*"; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\..\vendor\microsoft\VC_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Icons]
 Name: "{commondesktop}\Open-Source PyMOL"; Filename: "{app}\bin\Open-Source-PyMOL.exe"; IconFilename: "{app}\assets\logo.ico"
 Name: "{commonstartmenu}\Open-Source PyMOL"; Filename: "{app}\bin\Open-Source-PyMOL.exe"; IconFilename: "{app}\assets\logo.ico"
-
-[Run]
-Filename: "{tmp}\VC_redist.x64.exe"; Parameters: "/quiet /norestart"; Flags: runhidden waituntilterminated
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"

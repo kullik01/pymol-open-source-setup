@@ -74,8 +74,13 @@ jobs:
           Start-Process -FilePath "$env:RUNNER_TEMP\innosetup.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait
 
       - name: Build frozen application
+        # Also downloads the Microsoft C++ runtime, which is bundled into the app
+        timeout-minutes: 30
         shell: cmd
         run: win_automator.bat build app
+
+      - name: Check the bundled C++ runtime
+        run: .venv/Scripts/python tests/check_msvc_runtime.py "dist/exe.win-amd64-${PYTHON_VERSION}"
 
       - name: Smoke test
         timeout-minutes: 5
@@ -87,6 +92,13 @@ jobs:
 
       - name: Create portable archive
         run: 7z a -tzip -bso0 -bsp0 "os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_x64_portable.zip" "./dist/exe.win-amd64-${PYTHON_VERSION}/*"
+
+      - name: Test portable archive
+        timeout-minutes: 5
+        run: |
+          PORTABLE_DIR="${RUNNER_TEMP}/portable"
+          7z x -bso0 -bsp0 -o"${PORTABLE_DIR}" "os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_x64_portable.zip"
+          tests/run_smoke_test.sh "${PORTABLE_DIR}/Open-Source-PyMOL.exe"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6

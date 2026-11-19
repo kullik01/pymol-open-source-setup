@@ -56,6 +56,14 @@ options = {
   },
 }
 
+if sys.platform == "win32":
+  # Bundles the Microsoft C++ runtime (vcruntime140.dll, msvcp140.dll, ...), which
+  # cx_Freeze leaves out by default, so the app also starts on PCs without the
+  # VC++ Redistributable. cx_Freeze downloads the latest runtime of Visual Studio
+  # 2022 from Microsoft (cached in %APPDATA%\cx_Freeze\vc_redist).
+  options["build_exe"]["include_msvcr"] = True
+  options["build_exe"]["include_msvcr_version"] = "17"
+
 if sys.platform == "darwin":
   options["build_exe"]["includes"].append("ssl")
   options["bdist_mac"] = {

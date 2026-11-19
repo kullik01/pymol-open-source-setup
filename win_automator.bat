@@ -14,8 +14,18 @@ REM -*
 REM -*
 REM Z* -------------------------------------------------------------------
 cd /d "%~dp0"
+REM "setup" creates .venv with Python 3.11 and installs requirements.txt
+if /i "%~1"=="setup" (
+    where uv >nul 2>nul || (
+        echo uv is missing, see https://docs.astral.sh/uv/getting-started/installation/ 1>&2
+        exit /b 1
+    )
+    uv venv --allow-existing --python 3.11 .venv || exit /b 1
+    uv pip install --python .venv\Scripts\python.exe -r requirements.txt || exit /b 1
+    exit /b 0
+)
 if not exist .\.venv\Scripts\python.exe (
-    echo Virtual environment does not exist yet! Please create it first, see README.md. 1>&2
+    echo The virtual environment does not exist yet. Create it with: win_automator.bat setup 1>&2
     exit /b 1
 )
 .\.venv\Scripts\python.exe .\automations\my_automator.py %*

@@ -39,6 +39,8 @@ env:
   PIP_DEFAULT_TIMEOUT: "60"
   PIP_RETRIES: "10"
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  # uv (./automator.sh setup) uses the Python of actions/setup-python, which gets bundled into the app
+  UV_PYTHON_PREFERENCE: only-system
   # The smoke tests also download a structure from the PDB (HTTPS)
   PYMOL_SMOKE_TEST_ONLINE: "1"
 
@@ -78,17 +80,16 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: 'requirements.txt'
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v10.3.3
 
       - name: Extract project version
         run: echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)" >> "$GITHUB_ENV"
 
       - name: Create virtual environment
-        run: |
-          python -m venv .venv
-          .venv/Scripts/python -m pip install wheel setuptools
-          .venv/Scripts/python -m pip install -r requirements.txt
+        shell: cmd
+        run: win_automator.bat setup
 
       - name: Install Inno Setup
         shell: pwsh
@@ -205,17 +206,15 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: 'requirements.txt'
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v10.3.3
 
       - name: Extract project version
         run: echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)" >> "$GITHUB_ENV"
 
       - name: Create virtual environment
-        run: |
-          python -m venv .venv
-          .venv/bin/python -m pip install wheel setuptools
-          .venv/bin/python -m pip install -r requirements.txt
+        run: ./automator.sh setup
 
       - name: Build app bundle
         run: ./automator.sh build app
@@ -291,14 +290,12 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: 'requirements.txt'
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v10.3.3
 
       - name: Create virtual environment
-        run: |
-          python -m venv .venv
-          .venv/bin/python -m pip install wheel setuptools
-          .venv/bin/python -m pip install -r requirements.txt
+        run: ./automator.sh setup
 
       - name: Install libxcb-cursor
         # Bundled into the app for Qt's X11 support (RHEL/Alma 8 only have it in EPEL)

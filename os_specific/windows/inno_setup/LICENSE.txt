@@ -4,6 +4,11 @@ pymol-open-source-setup License Notice
 The source code of the actual installation setup is
 licensed under the BSD-3 clause.
 
+The application also contains Python, Qt/PyQt5, OpenSSL and other
+open-source components under their own licenses. Their license
+texts are installed in the folder "bin\licenses" (see
+THIRD-PARTY-NOTICES.txt there).
+
 
 Open-Source PyMOL Copyright Notice
 ==================================

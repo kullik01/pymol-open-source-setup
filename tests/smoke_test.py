@@ -7,6 +7,7 @@ Run it with the frozen executable, use tests/run_smoke_test.sh:
 Prints "SMOKE TEST OK" on success, otherwise exits with status 1.
 """
 import os
+import pathlib
 import sys
 import tempfile
 import traceback
@@ -28,6 +29,19 @@ def check_bundled_modules_and_data() -> None:
   for tmp_path in ("data/startup", "data/pymol/splash.png", "data/pymol/icons/alt_logo.png"):
     tmp_full_path = os.path.join(os.environ["PYMOL_PATH"], tmp_path)
     assert os.path.exists(tmp_full_path), f"missing {tmp_full_path}"
+
+
+def check_licenses() -> None:
+  """The license texts must be shipped next to the executable (macOS: in Resources)."""
+  exe_dir = pathlib.Path(os.path.realpath(sys.executable)).parent
+  candidates = (exe_dir / "licenses", exe_dir.parent / "Resources" / "licenses")
+  licenses_dir = next((d for d in candidates if d.is_dir()), None)
+  assert licenses_dir is not None, f"licenses folder missing next to {exe_dir}"
+  for tmp_name in ("README.txt", "THIRD-PARTY-NOTICES.txt", "pymol-open-source-whl/LICENSE",
+                   "PyQt5/GPL-3.0.txt", "PyQt5-Qt5/LICENSE", "Python/LICENSE.txt"):
+    assert (licenses_dir / tmp_name).is_file(), f"license file missing: {tmp_name}"
+  if sys.platform == "win32":
+    assert (exe_dir / "share" / "licenses" / "vc_redist").is_dir(), "license of the C++ runtime missing"
 
 
 def check_commands(a_tmp_dir: str) -> None:
@@ -56,6 +70,7 @@ def check_gui(a_tmp_dir: str) -> str:
 
 try:
   check_bundled_modules_and_data()
+  check_licenses()
   with tempfile.TemporaryDirectory() as tmp_dir:
     check_commands(tmp_dir)
     tmp_mode = check_gui(tmp_dir)

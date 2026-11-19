@@ -1,0 +1,57 @@
+Open-Source PyMOL - third-party notices
+=======================================
+
+This application is an unofficial build of Open-Source PyMOL. Besides PyMOL it
+contains Python and other open-source components. Their license texts are in
+this folder; README.txt lists every bundled Python package with its version
+and license.
+
+PyMOL(TM) is a trademark of Schrodinger, LLC. This build is not provided,
+endorsed or supported by Schrodinger, LLC.
+
+
+Components without a license file of their own
+----------------------------------------------
+
+Qt 5 (LGPL v3) and its third-party parts
+    Shipped by PyQt5-Qt5, see PyQt5-Qt5/LICENSE. The licenses of the third-party
+    parts of Qt are listed at https://doc.qt.io/qt-5/licenses-used-in-qt.html
+
+PyQt5 (GPL v3)
+    See GPL-3.0.txt. Source code: https://pypi.org/project/PyQt5/#files
+
+OpenSSL 3 (Apache License 2.0)
+    See Apache-2.0.txt. Bundled by cx_Freeze (Linux, macOS) and by Python
+    (Windows). Source code: https://www.openssl.org/source/
+
+Microsoft Visual C++ runtime (Windows only)
+    See share/licenses/vc_redist in the application folder.
+
+cx_Freeze (Python Software Foundation-style license)
+    Freezes the application; see frozen_application_license.txt in the
+    application folder.
+
+Native libraries of the Linux build (bundled by cx_Freeze):
+    GNU readline 6.2      GPL v3, see GPL-3.0.txt
+                          Source code: https://ftp.gnu.org/gnu/readline/
+    ncurses (libtinfo)    MIT-style license
+    SQLite                public domain
+    Tcl/Tk 8.6            Tcl/Tk license (BSD-style)
+    libffi                MIT license
+    bzip2                 bzip2 license (BSD-style)
+    xz (liblzma)          public domain
+    libpng                libpng license
+    FreeType              FreeType License (BSD-style)
+    Fontconfig, Xft       MIT-style licenses
+    libuuid               BSD license
+
+OpenBLAS, libgfortran and libquadmath (bundled by numpy)
+    Covered by numpy/LICENSE.txt.
+
+
+Source code
+-----------
+The source code of this setup (build scripts, the edited PyMOL files and the
+tests) is available at https://github.com/kullik01/pymol-open-source-setup
+The source code of Open-Source PyMOL is available at
+https://github.com/schrodinger/pymol-open-source

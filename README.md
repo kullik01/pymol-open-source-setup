@@ -99,9 +99,12 @@ without a release, run the "Build Docs" action manually (Actions > Build Docs > 
 on the tag of the latest release or on `main` (only if its version is already released).
 
 ## License
-Copyright (c) [Schrodinger, LLC](https://www.schrodinger.com/)
-
-Published under a BSD-like license, see [LICENSE](LICENSE).
+- **Open-Source PyMOL:** Copyright (c) [Schrodinger, LLC](https://www.schrodinger.com/), published under
+  a BSD-like license, see [LICENSE_Schrodinger](LICENSE_Schrodinger).
+- **This repository** (build scripts, edited PyMOL files, tests): BSD-3-Clause, see [LICENSE](LICENSE).
+- **Third-party components:** the packages also contain Python, Qt/PyQt5, OpenSSL and other open-source
+  components. Every package ships their license texts in its `licenses` folder; see
+  [licenses/THIRD-PARTY-NOTICES.txt](licenses/THIRD-PARTY-NOTICES.txt).
 
 ## Acknowledgements
 **Schrödinger** for being the driving force behind the continued development of PyMOL after Warren's passing, ensuring that the open-source version remained alive and well.

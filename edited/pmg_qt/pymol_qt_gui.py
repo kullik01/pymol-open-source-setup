@@ -1233,9 +1233,13 @@ def execapp():
     import traceback
     sys.excepthook = traceback.print_exception
 
-    # use QT_OPENGL=desktop (auto-detection may fail on Windows)
-    if hasattr(Qt, 'AA_UseDesktopOpenGL') and pymol.IS_WINDOWS:
+    # BEGIN EDITED CODE SEGMENT
+    # :author Hannah Kullik
+    # use QT_OPENGL=desktop (auto-detection may fail on Windows), unless the user
+    # chose the renderer (e.g. QT_OPENGL=software without a usable OpenGL driver)
+    if hasattr(Qt, 'AA_UseDesktopOpenGL') and pymol.IS_WINDOWS and not os.environ.get('QT_OPENGL'):
         QtCore.QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
+    # END EDITED CODE SEGMENT
 
     # enable 4K scaling on Windows and Linux
     if hasattr(Qt, 'AA_EnableHighDpiScaling') and not any(

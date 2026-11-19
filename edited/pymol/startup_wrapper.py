@@ -3,6 +3,38 @@ import sys
 
 import pymol
 
+# System certificate files (CA bundles), in the order they are tried
+CA_BUNDLE_FILEPATHS = {
+  "darwin": ("/etc/ssl/cert.pem",),
+  "linux": (
+    "/etc/ssl/certs/ca-certificates.crt",                 # Debian, Ubuntu, Arch, Fedora
+    "/etc/pki/tls/certs/ca-bundle.crt",                   # Fedora, RHEL, Rocky, Alma
+    "/etc/ssl/ca-bundle.pem",                             # openSUSE
+    "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",  # RHEL, CentOS
+    "/etc/ssl/cert.pem",                                  # Alpine, others
+  ),
+}
+
+
+def _use_system_ca_certificates() -> None:
+  """Lets HTTPS (e.g. fetching structures from the PDB) use the system's certificates.
+
+  The OpenSSL bundled by cx_Freeze on Linux looks for certificates in paths of
+  its build environment that exist on no real system, so every HTTPS
+  connection fails with CERTIFICATE_VERIFY_FAILED. On macOS the frozen app has
+  the same problem. Windows uses the Windows certificate store instead.
+
+  Nothing is changed if the user already set SSL_CERT_FILE or SSL_CERT_DIR.
+  """
+  if os.environ.get("SSL_CERT_FILE") or os.environ.get("SSL_CERT_DIR"):
+    return
+  platform = "linux" if sys.platform.startswith("linux") else sys.platform
+  for tmp_filepath in CA_BUNDLE_FILEPATHS.get(platform, ()):
+    if os.path.isfile(tmp_filepath):
+      os.environ["SSL_CERT_FILE"] = tmp_filepath
+      os.environ.setdefault("REQUESTS_CA_BUNDLE", tmp_filepath)
+      return
+
 
 def _prefer_xwayland_on_linux() -> None:
   """Runs PyMOL through XWayland (Qt "xcb") on Linux Wayland sessions.
@@ -30,12 +62,7 @@ def _prefer_xwayland_on_linux() -> None:
 
 
 if __name__ == '__main__':
-  if sys.platform == "darwin":
-    native_mac_cert = "/etc/ssl/cert.pem"
-    if os.path.exists(native_mac_cert):
-      os.environ["SSL_CERT_FILE"] = native_mac_cert
-      os.environ["REQUESTS_CA_BUNDLE"] = native_mac_cert
-
+  _use_system_ca_certificates()
   _prefer_xwayland_on_linux()
 
   pymol.launch(sys.argv)

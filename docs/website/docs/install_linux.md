@@ -56,5 +56,6 @@ Feel free to move it anywhere you want and start PyMOL with:
 ```shell
 ./{{ app_dir }}/Open-Source-PyMOL
 ```
-The portable installation uses the OpenGL, X11/XCB and font libraries of your system,
+The portable installation uses the OpenGL, X11/XCB and font libraries and the CA certificates
+(package `ca-certificates`, needed to fetch structures from the PDB) of your system,
 which are part of every common desktop installation.

@@ -92,6 +92,15 @@ for all three platforms.
      (`_macOS_AppleSilicon.dmg` or `_macOS_Intel.dmg`); on a Mac it is the architecture of
      the Python used for the build.
 
+### Quick checks
+The CI job "checks" lints the Python code (ruff), the shell scripts (shellcheck) and the
+GitHub workflows (actionlint) in about half a minute. Run the same checks locally with
+[uv](https://docs.astral.sh/uv/):
+```shell
+uvx pre-commit run --all-files    # once
+uvx pre-commit install            # before every commit from now on
+```
+
 ## Releasing a new version
 The version in [pyproject.toml](pyproject.toml) is the only place to change. The build,
 the file names and the website (version, file names and download links) all use it.

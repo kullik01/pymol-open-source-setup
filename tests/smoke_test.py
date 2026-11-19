@@ -12,13 +12,14 @@ Prints "SMOKE TEST OK" on success, otherwise exits with status 1.
 import faulthandler
 import os
 import pathlib
-import sys
 import ssl
+import sys
 import tempfile
 import time
 import traceback
 import urllib.error
 import urllib.request
+
 
 # On a crash (e.g. in the OpenGL driver) print the Python stacks of all threads.
 # Enable it before importing PyMOL, which replaces sys.stderr with an object without fileno().
@@ -35,11 +36,12 @@ def check_bundled_modules_and_data() -> None:
   # Modules that must be bundled explicitly or are loaded dynamically
   import ssl  # noqa: F401
   import uuid  # noqa: F401
-  import pymol.parser  # noqa: F401
-  import pymol.povray  # noqa: F401
-  import pymol.vfont  # noqa: F401
-  import pymol.wizard.mutagenesis  # noqa: F401
+
   import Bio  # noqa: F401  (used by pymol.seqalign)
+  import pymol.parser
+  import pymol.povray
+  import pymol.vfont
+  import pymol.wizard.mutagenesis  # noqa: F401
 
   for tmp_path in ("data/startup", "data/pymol/splash.png", "data/pymol/icons/alt_logo.png"):
     tmp_full_path = os.path.join(os.environ["PYMOL_PATH"], tmp_path)
@@ -125,7 +127,7 @@ try:
     tmp_mode = check_gui(tmp_dir)
     if check_online(tmp_dir):
       tmp_mode += ", online"
-except Exception:
+except Exception:  # noqa: BLE001  (every failure must print the FAILED marker)
   traceback.print_exc()
   print("SMOKE TEST FAILED", flush=True)
   cmd.quit(1)

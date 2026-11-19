@@ -43,6 +43,27 @@ env:
   PYMOL_SMOKE_TEST_ONLINE: "1"
 
 jobs:
+  # ----- Quick checks: Python (ruff), shell scripts (shellcheck) and workflows (actionlint),
+  # configured in .pre-commit-config.yaml
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v10.3.3
+
+      - name: Cache the check tools
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run the checks
+        run: uvx pre-commit@4.7.0 run --all-files --show-diff-on-failure
+  # --- end
+
   # ----- Windows build section
   build-windows:
     runs-on: windows-latest
@@ -394,7 +415,7 @@ jobs:
   # match. For a version tag it also creates a draft release with all files,
   # which can be checked and published on GitHub.
   release:
-    needs: [website, build-windows, build-macos, build-gnu-linux, test-gnu-linux-packages]
+    needs: [checks, website, build-windows, build-macos, build-gnu-linux, test-gnu-linux-packages]
     runs-on: ubuntu-latest
     permissions:
       contents: write

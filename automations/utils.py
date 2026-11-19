@@ -25,6 +25,6 @@ def run(args: list, **kwargs) -> None:
     args: The command and its arguments.
     **kwargs: Passed on to subprocess.run (e.g. cwd, env).
   """
-  tmp_result = subprocess.run([str(arg) for arg in args], **kwargs)
+  tmp_result = subprocess.run([str(arg) for arg in args], check=False, **kwargs)
   if tmp_result.returncode != 0:
     sys.exit(f"Command failed with exit code {tmp_result.returncode}: {args[0]}")

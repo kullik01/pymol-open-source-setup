@@ -8,6 +8,7 @@ for. Usage in the Markdown pages: {{ version }}, {{ app_dir }},
 import pathlib
 import tomllib
 
+
 PYPROJECT_FILEPATH = pathlib.Path(__file__).resolve().parents[2] / "pyproject.toml"
 # Suffixes of the release files (see the build scripts); a typo fails the build
 RELEASE_FILE_SUFFIXES = (

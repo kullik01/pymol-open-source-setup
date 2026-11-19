@@ -14,6 +14,7 @@ import sys
 
 import lief
 
+
 RUNTIME_DLL_PATTERN = re.compile(
   r"^(vcruntime140(_\d+)?|msvcp140(_\w+)?|concrt140|vcomp140|vccorlib140|vcamp140)\.dll$",
   re.IGNORECASE,

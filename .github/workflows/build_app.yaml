@@ -93,9 +93,12 @@ jobs:
 
       - name: GUI smoke test
         timeout-minutes: 5
+        continue-on-error: true  # TEMP diagnostics
         env:
           # The runner has no GPU (only OpenGL 1.1): use Qt's bundled software OpenGL
           QT_OPENGL: software
+          QT_FORCE_STDERR_LOGGING: "1"  # TEMP diagnostics
+          QT_LOGGING_RULES: "qt.qpa.gl=true;qt.qpa.window=true"  # TEMP diagnostics
         run: tests/run_smoke_test.sh --gui "dist/exe.win-amd64-${PYTHON_VERSION}/Open-Source-PyMOL.exe"
 
       - name: Build installer

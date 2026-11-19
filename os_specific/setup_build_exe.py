@@ -30,12 +30,14 @@ with open(PROJECT_ROOT_DIR / "pyproject.toml", "rb") as tmp_file:
 LICENSES_DIR = PROJECT_ROOT_DIR / "licenses"
 # Python distributions that end up in the frozen application
 RUNTIME_DISTRIBUTIONS = (
-  "pymol-open-source-whl", "PyQt5", "PyQt5-Qt5", "PyQt5-sip", "numpy", "biopython",
+  "pymol-open-source-whl", "PySide6-Essentials", "shiboken6", "numpy", "biopython",
   "Pmw", "msgpack", "msgpack-python", "simplejson", "rules",
 )
 # License texts of distributions whose metadata contains none
 EXTRA_LICENSE_FILES = {
-  "PyQt5": [LICENSES_DIR / "GPL-3.0.txt"],
+  # Qt for Python: LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only (texts not in the wheels)
+  "PySide6-Essentials": [LICENSES_DIR / "LGPL-3.0.txt", LICENSES_DIR / "GPL-3.0.txt"],
+  "shiboken6": [LICENSES_DIR / "LGPL-3.0.txt", LICENSES_DIR / "GPL-3.0.txt"],
   "Pmw": ["Pmw/Pmw_2_1_1/doc/copyright.html"],  # relative to the installed package
 }
 LICENSE_FILENAME_PATTERN = re.compile(r"^(LICEN[CS]E|COPYING|NOTICE|AUTHORS)", re.IGNORECASE)
@@ -62,6 +64,7 @@ def collect_license_files(an_index_dir: pathlib.Path) -> list:
   files = [
     (LICENSES_DIR / "THIRD-PARTY-NOTICES.txt", "licenses/THIRD-PARTY-NOTICES.txt"),
     (LICENSES_DIR / "GPL-3.0.txt", "licenses/GPL-3.0.txt"),
+    (LICENSES_DIR / "LGPL-3.0.txt", "licenses/LGPL-3.0.txt"),
     (LICENSES_DIR / "Apache-2.0.txt", "licenses/Apache-2.0.txt"),
     (PROJECT_ROOT_DIR / "LICENSE", "licenses/PyMOL-Open-Source-setup/LICENSE"),
     (python_license, "licenses/Python/LICENSE.txt"),
@@ -112,12 +115,14 @@ options = {
     "includes": [
       "copy",
       "encodings",
-      "PyQt5.uic",
+      "PySide6.QtUiTools",  # used by pymol.Qt.utils.loadUi
       "pymol.vfont",
       "pymol.povray",
       "pymol.parser",
       "uuid",
     ],
+    # PyMOL would prefer PyQt5 if it were installed somewhere
+    "excludes": ["PyQt5", "PySide2", "PyQt6"],
     # Files that are loaded dynamically and therefore not found by cx_Freeze
     "include_files": [
       (PYMOL_PACKAGE_DIR / CMD_MODULE_FILENAME, f"lib/pymol/{CMD_MODULE_FILENAME}"),

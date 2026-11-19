@@ -13,12 +13,14 @@ endorsed or supported by Schrodinger, LLC.
 Components without a license file of their own
 ----------------------------------------------
 
-Qt 5 (LGPL v3) and its third-party parts
-    Shipped by PyQt5-Qt5, see PyQt5-Qt5/LICENSE. The licenses of the third-party
-    parts of Qt are listed at https://doc.qt.io/qt-5/licenses-used-in-qt.html
-
-PyQt5 (GPL v3)
-    See GPL-3.0.txt. Source code: https://pypi.org/project/PyQt5/#files
+Qt 6 and Qt for Python (PySide6, shiboken6)
+    Used under the LGPL v3 (LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only),
+    see LGPL-3.0.txt and GPL-3.0.txt. The Qt libraries are shared libraries
+    in the PySide6 folder of the application and can be replaced.
+    The licenses of the third-party parts of Qt are listed at
+    https://doc.qt.io/qt-6/licenses-used-in-qt.html
+    Source code: https://download.qt.io/official_releases/QtForPython/ and
+    https://download.qt.io/official_releases/qt/
 
 OpenSSL 3 (Apache License 2.0)
     See Apache-2.0.txt. Bundled by cx_Freeze (Linux, macOS) and by Python

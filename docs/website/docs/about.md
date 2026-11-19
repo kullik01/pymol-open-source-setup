@@ -4,7 +4,7 @@ Copyright (c) Schrodinger, LLC
 ## License
 Open-Source PyMOL is published under a **BSD-like license**, see below.
 
-The packages on this website also contain Python, Qt/PyQt5, OpenSSL and other open-source
+The packages on this website also contain Python, Qt/PySide6, OpenSSL and other open-source
 components under their own licenses. Every package ships these license texts in its
 `licenses` folder (on Windows in the `bin` folder of the installation).
 

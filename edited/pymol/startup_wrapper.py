@@ -36,33 +36,13 @@ def _use_system_ca_certificates() -> None:
       return
 
 
-def _prefer_xwayland_on_linux() -> None:
-  """Runs PyMOL through XWayland (Qt "xcb") on Linux Wayland sessions.
-
-  The bundled Qt 5 auto-selects its own Wayland platform plugin on Wayland
-  sessions (e.g. KDE Plasma 6). PyMOL's legacy QGLWidget does not work with
-  it: the viewer turns translucent/black and flickers on resize.
-
-  Nothing is changed if:
-    - the OS is not Linux (Windows and macOS are unaffected),
-    - the user already chose a platform via QT_QPA_PLATFORM,
-    - the session is not Wayland (plain X11 already uses xcb),
-    - no X display is available (no XWayland), to avoid a startup crash.
-  """
-  if not sys.platform.startswith("linux"):
-    return
-  if os.environ.get("QT_QPA_PLATFORM"):
-    return
-  is_wayland_session = (
-    os.environ.get("XDG_SESSION_TYPE", "").lower() == "wayland"
-    or bool(os.environ.get("WAYLAND_DISPLAY"))
-  )
-  if is_wayland_session and os.environ.get("DISPLAY"):
-    os.environ["QT_QPA_PLATFORM"] = "xcb"
+def _use_pyside6() -> None:
+  """Selects PySide6 for PyMOL's Qt layer (pymol.Qt), the only Qt binding of the app."""
+  os.environ.setdefault("QT_API", "pyside6")
 
 
 if __name__ == '__main__':
   _use_system_ca_certificates()
-  _prefer_xwayland_on_linux()
+  _use_pyside6()
 
   pymol.launch(sys.argv)

@@ -215,6 +215,8 @@ jobs:
           test -f "$MOUNT_DIR/.background/dmg_background.svg"
           APP="$MOUNT_DIR/PyMOL-Open-Source-${PROJECT_VERSION}.app"
           codesign --verify --deep "$APP"
+          plutil -lint "$APP/Contents/Info.plist"
+          test "$(plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source"
           # PyMOL, Qt and numpy must be built for the architecture of this runner
           for MODULE in "$APP"/Contents/Resources/lib/{pymol/_cmd.*.so,PyQt5/QtCore.abi3.so,numpy/core/_multiarray_umath.*.so}; do
             ARCHS="$(lipo -archs "$MODULE")"

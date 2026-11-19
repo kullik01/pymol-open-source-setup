@@ -142,7 +142,6 @@ if sys.platform == "darwin":
     "custom_info_plist": str(OS_SPECIFIC_DIR / "Info.plist"),
     # Keeps the version of the app bundle in sync with pyproject.toml
     "plist_items": [
-      ("CFBundleIdentifier", f"Open-Source-PyMOL-{PROJECT_VERSION}"),
       ("CFBundleShortVersionString", PROJECT_VERSION),
       ("CFBundleVersion", PROJECT_VERSION),
     ],

@@ -31,7 +31,7 @@ case "$CMD_ARCHS" in
     exit 1
     ;;
 esac
-for MODULE in "$LIB_DIR"/PySide6/QtCore.abi3.so "$LIB_DIR"/numpy/core/_multiarray_umath.*.so; do
+for MODULE in "$LIB_DIR"/PySide6/QtCore.abi3.so "$LIB_DIR"/numpy/_core/_multiarray_umath.*.so; do
   if ! lipo -archs "$MODULE" | grep -qw "$CMD_ARCHS"; then
     echo "${MODULE#"$LIB_DIR"/} is not built for ${CMD_ARCHS} like PyMOL's _cmd module" >&2
     exit 1

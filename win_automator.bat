@@ -14,13 +14,13 @@ REM -*
 REM -*
 REM Z* -------------------------------------------------------------------
 cd /d "%~dp0"
-REM "setup" creates .venv with Python 3.11 and installs requirements.txt
+REM "setup" creates a fresh .venv with Python 3.13 and installs requirements.txt
 if /i "%~1"=="setup" (
     where uv >nul 2>nul || (
         echo uv is missing, see https://docs.astral.sh/uv/getting-started/installation/ 1>&2
         exit /b 1
     )
-    uv venv --allow-existing --python 3.11 .venv || exit /b 1
+    uv venv --clear --python 3.13 .venv || exit /b 1
     uv pip install --compile-bytecode --python .venv\Scripts\python.exe -r requirements.txt || exit /b 1
     exit /b 0
 )

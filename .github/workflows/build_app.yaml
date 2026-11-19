@@ -34,7 +34,7 @@ permissions:
   contents: read
 
 env:
-  PYTHON_VERSION: "3.11"
+  PYTHON_VERSION: "3.13"
   # More robust against temporary network problems with PyPI
   PIP_DEFAULT_TIMEOUT: "60"
   PIP_RETRIES: "10"
@@ -262,11 +262,12 @@ jobs:
           plutil -lint "$APP/Contents/Info.plist"
           test "$(plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source"
           # PyMOL, Qt and numpy must contain the architecture of this runner (Qt is universal)
-          for MODULE in "$APP"/Contents/Resources/lib/{pymol/_cmd.*.so,PySide6/QtCore.abi3.so,numpy/core/_multiarray_umath.*.so}; do
+          for MODULE in "$APP"/Contents/Resources/lib/{pymol/_cmd.*.so,PySide6/QtCore.abi3.so,numpy/_core/_multiarray_umath.*.so}; do
             ARCHS="$(lipo -archs "$MODULE")"
             echo "${ARCHS}  ${MODULE#"$APP"/}"
             grep -qw "${{ matrix.arch }}" <<< "$ARCHS"
           done
+          tests/check_macos_min_version.sh "$APP"
           tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL"
 
       - name: Upload artifact

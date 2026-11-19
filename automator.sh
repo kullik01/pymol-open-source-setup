@@ -14,13 +14,13 @@
 #-*
 #Z* -------------------------------------------------------------------
 cd "$(dirname "$0")" || exit 1
-# "setup" creates .venv with Python 3.11 and installs requirements.txt
+# "setup" creates a fresh .venv with Python 3.13 and installs requirements.txt
 if [ "${1:-}" = "setup" ]; then
     if ! command -v uv >/dev/null; then
         echo "uv is missing, see https://docs.astral.sh/uv/getting-started/installation/" >&2
         exit 1
     fi
-    uv venv --allow-existing --python 3.11 .venv && exec uv pip install --compile-bytecode --python .venv -r requirements.txt
+    uv venv --clear --python 3.13 .venv && exec uv pip install --compile-bytecode --python .venv -r requirements.txt
 fi
 if [ ! -x ./.venv/bin/python ]; then
     echo "The virtual environment does not exist yet. Create it with: ./automator.sh setup" >&2

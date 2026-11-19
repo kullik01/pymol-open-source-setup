@@ -1,7 +1,7 @@
 [project]
 name = "PyMOL-Open-Source"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 version = "3.1.0.4+4"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
@@ -24,7 +24,7 @@ Repository = "https://github.com/kullik01/pymol-open-source-setup"
 
 # Linter of the quick checks (.pre-commit-config.yaml)
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 indent-width = 2
 # Upstream PyMOL code, kept close to the original
 extend-exclude = ["edited"]

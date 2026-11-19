@@ -90,6 +90,46 @@ jobs:
         shell: cmd
         run: win_automator.bat build inno_setup
 
+      - name: Install with the installer
+        # Per-user install like on a user's PC (Git Bash would turn /VERYSILENT into a path)
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem "os_specific/dist/*_x64_setup.exe" | Select-Object -First 1
+          $process = Start-Process $setup.FullName -Wait -PassThru `
+            -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', "/LOG=$env:RUNNER_TEMP\install.log"
+          if ($process.ExitCode -ne 0) { Get-Content "$env:RUNNER_TEMP\install.log"; throw "Setup failed: $($process.ExitCode)" }
+          $exe = Join-Path $env:APPDATA "PyMOL-Open-Source\bin\Open-Source-PyMOL.exe"
+          if (-not (Test-Path $exe)) { throw "Not installed: $exe" }
+          foreach ($folder in [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs')) {
+            if (-not (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk'))) { throw "Shortcut missing in $folder" }
+          }
+          foreach ($folder in [Environment]::GetFolderPath('CommonDesktopDirectory'), [Environment]::GetFolderPath('CommonPrograms'), [Environment]::GetFolderPath('CommonStartMenu')) {
+            if (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk')) { throw "Shortcut in the All Users folder $folder" }
+          }
+          $key = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{192F52C3-D86D-4735-9929-C7DF593CB534}_is1'
+          $version = (Get-ItemProperty $key).DisplayVersion
+          if ($version -ne $env:PROJECT_VERSION) { throw "Uninstall entry has version '$version'" }
+          "INSTALLED_APP=$exe" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+
+      - name: Smoke test of the installed app
+        timeout-minutes: 5
+        run: tests/run_smoke_test.sh "$(cygpath -u "$INSTALLED_APP")"
+
+      - name: Uninstall
+        timeout-minutes: 5
+        shell: pwsh
+        run: |
+          $app = Join-Path $env:APPDATA "PyMOL-Open-Source"
+          Start-Process (Join-Path $app "unins000.exe") -Wait -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'
+          # The uninstaller restarts itself from %TEMP%, so wait until the folder is gone
+          for ($i = 0; $i -lt 60 -and (Test-Path $app); $i++) { Start-Sleep -Seconds 2 }
+          if (Test-Path $app) { throw "Not uninstalled: $app" }
+          foreach ($folder in [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs')) {
+            if (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk')) { throw "Shortcut left in $folder" }
+          }
+          if (Test-Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{192F52C3-D86D-4735-9929-C7DF593CB534}_is1') { throw "Uninstall entry left" }
+
       - name: Create portable archive
         run: 7z a -tzip -bso0 -bsp0 "os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_x64_portable.zip" "./dist/exe.win-amd64-${PYTHON_VERSION}/*"
 

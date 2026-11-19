@@ -34,7 +34,8 @@ UninstallDisplayName=PyMOL-Open-Source
 UninstallDisplayIcon={app}\assets\logo.ico
 LicenseFile=LICENSE.txt
 DiskSpanning=no
-PrivilegesRequired=none
+; Installs per user (into AppData\Roaming), no administrator rights needed
+PrivilegesRequired=lowest
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -44,13 +45,17 @@ Name: "{app}"
 Name: "{app}\assets"
 Name: "{app}\bin"
 
+[InstallDelete]
+; On an upgrade, files of older versions must not stay in the frozen application
+Type: filesandordirs; Name: "{app}\bin"
+
 [Files]
 Source: "..\logo.ico"; DestDir: "{app}\assets"; Flags: ignoreversion
 Source: "{#AppSourceDir}\*"; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{commondesktop}\Open-Source PyMOL"; Filename: "{app}\bin\Open-Source-PyMOL.exe"; IconFilename: "{app}\assets\logo.ico"
-Name: "{commonstartmenu}\Open-Source PyMOL"; Filename: "{app}\bin\Open-Source-PyMOL.exe"; IconFilename: "{app}\assets\logo.ico"
+Name: "{autodesktop}\Open-Source PyMOL"; Filename: "{app}\bin\Open-Source-PyMOL.exe"; IconFilename: "{app}\assets\logo.ico"
+Name: "{autoprograms}\Open-Source PyMOL"; Filename: "{app}\bin\Open-Source-PyMOL.exe"; IconFilename: "{app}\assets\logo.ico"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"

@@ -46,3 +46,12 @@ For a convenient and user-friendly installation follow these steps (installation
     <div id='header' align='center'>
       <img src='assets/images/installation/wiki_image_6.png' width='1000'/>
     </div>
+
+## Troubleshooting
+If PyMOL closes right after the start or shows no molecules, the graphics driver may not
+support OpenGL 2 (e.g. in a virtual machine). Then start PyMOL with Qt's software rendering:
+open a command prompt in the installation folder `bin` and run
+```shell
+set QT_OPENGL=software
+Open-Source-PyMOL.exe
+```

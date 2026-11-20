@@ -14,9 +14,11 @@ source /etc/os-release
 echo "=== Testing $(basename "$PACKAGE") on ${PRETTY_NAME}"
 
 # Retries a command, e.g. if a distribution mirror is temporarily out of sync
+# Up to 3 attempts of at most 4 minutes each: a stuck package mirror fails the attempt
+# instead of the whole CI job (15 minutes)
 retry() {
   for ATTEMPT in 1 2 3; do
-    "$@" && return 0
+    timeout 240 "$@" && return 0
     echo "Attempt ${ATTEMPT} failed: $*" >&2
     [ "$ATTEMPT" -lt 3 ] && sleep 30
   done
@@ -32,7 +34,8 @@ case " ${ID} ${ID_LIKE:-} " in
     retry apt-get install -y -qq "$PACKAGE" xvfb libgl1-mesa-dri shared-mime-info > /dev/null
     ;;
   *" fedora "*|*" rhel "*)
-    retry dnf install -y -q "$PACKAGE" xorg-x11-server-Xvfb mesa-dri-drivers shared-mime-info
+    # Leave mirrors slower than 100 kB/s (dnf's default limit is 1 kB/s)
+    retry dnf install -y -q --setopt=minrate=100k --setopt=timeout=30 "$PACKAGE" xorg-x11-server-Xvfb mesa-dri-drivers shared-mime-info
     ;;
   *" suse "*|*" opensuse "*)
     retry zypper --non-interactive --quiet install --allow-unsigned-rpm "$PACKAGE" xorg-x11-server-Xvfb Mesa-dri shared-mime-info

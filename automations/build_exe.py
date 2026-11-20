@@ -17,6 +17,7 @@
 import importlib.metadata
 import os
 import pathlib
+import platform
 import shutil
 import sys
 
@@ -53,13 +54,17 @@ def bundle_libxcb_cursor() -> None:
   Qt 6.5+ needs it for X11, but RHEL/Alma 8 only have it in EPEL. cx_Freeze
   leaves system libraries out, so it is copied after freezing.
   """
-  for tmp_dir in ("/usr/lib/x86_64-linux-gnu", "/lib/x86_64-linux-gnu", "/usr/lib64", "/lib64", "/usr/lib"):
+  tmp_multiarch = f"{platform.machine()}-linux-gnu"
+  for tmp_dir in (f"/usr/lib/{tmp_multiarch}", f"/lib/{tmp_multiarch}", "/usr/lib64", "/lib64", "/usr/lib"):
     tmp_source = pathlib.Path(tmp_dir, "libxcb-cursor.so.0")
     if tmp_source.exists():
       break
   else:
     sys.exit("libxcb-cursor.so.0 not found. Install it (Debian/Ubuntu and openSUSE: libxcb-cursor0, Fedora: xcb-util-cursor).")
-  for tmp_qt_lib_dir in const.DIST_DIR.glob("exe.linux-*/lib/PySide6/Qt/lib"):
+  tmp_qt_lib_dirs = list(const.DIST_DIR.glob("exe.linux-*/lib/PySide6/Qt/lib"))
+  if not tmp_qt_lib_dirs:
+    sys.exit(f"No PySide6/Qt/lib folder found in {const.DIST_DIR}; cannot bundle libxcb-cursor.so.0.")
+  for tmp_qt_lib_dir in tmp_qt_lib_dirs:
     shutil.copy2(tmp_source.resolve(), tmp_qt_lib_dir / "libxcb-cursor.so.0")
 
 

@@ -239,12 +239,8 @@ jobs:
           codesign --verify --deep "$APP"
           plutil -lint "$APP/Contents/Info.plist"
           test "$(plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source"
-          # PyMOL, Qt and numpy must contain the architecture of this runner (Qt is universal)
-          for MODULE in "$APP"/Contents/Resources/lib/{pymol/_cmd.*.so,PySide6/QtCore.abi3.so,numpy/core/_multiarray_umath.*.so}; do
-            ARCHS="$(lipo -archs "$MODULE")"
-            echo "${ARCHS}  ${MODULE#"$APP"/}"
-            grep -qw "${{ matrix.arch }}" <<< "$ARCHS"
-          done
+          # PyMOL is built for this runner's architecture (build_dmg.sh checks that Qt and numpy match it)
+          test "$(lipo -archs "$APP"/Contents/Resources/lib/pymol/_cmd.*.so)" = "${{ matrix.arch }}"
           tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL"
 
       - name: Upload artifact
@@ -277,11 +273,13 @@ jobs:
           .venv/bin/python -m pip install wheel setuptools
           .venv/bin/python -m pip install -r os_specific/linux/requirements.txt
 
-      - name: Install libxcb-cursor
-        # Bundled into the app for Qt's X11 support (RHEL/Alma 8 only have it in EPEL)
+      - name: Install system packages
+        # libxcb-cursor is bundled into the app for Qt's X11 support (RHEL/Alma 8 only have
+        # it in EPEL); rpm and fpm build the packages
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq libxcb-cursor0
+          sudo apt-get install -y -qq libxcb-cursor0 rpm
+          sudo gem install --no-document fpm -v 1.18.0
 
       - name: Build frozen application
         run: ./automator.sh build app
@@ -289,12 +287,6 @@ jobs:
       - name: Smoke test
         timeout-minutes: 5
         run: tests/run_smoke_test.sh dist/exe.linux-*/Open-Source-PyMOL
-
-      - name: Install packaging tools
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq rpm
-          sudo gem install --no-document fpm -v 1.18.0
 
       - name: Build .tar.gz, .deb and .rpm packages
         run: os_specific/linux/build_packages.sh

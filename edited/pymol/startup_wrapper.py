@@ -36,8 +36,12 @@ def _use_system_ca_certificates() -> None:
 
 
 def _use_pyside6() -> None:
-  """Selects PySide6 for PyMOL's Qt layer (pymol.Qt), the only Qt binding of the app."""
-  os.environ.setdefault("QT_API", "pyside6")
+  """Selects PySide6 for PyMOL's Qt layer (pymol.Qt), the only Qt binding of the app.
+
+  Overrides a QT_API the user set for another binding (e.g. pyqt5), which
+  the app does not contain and pymol.Qt would then fail to import.
+  """
+  os.environ["QT_API"] = "pyside6"
 
 
 if __name__ == '__main__':

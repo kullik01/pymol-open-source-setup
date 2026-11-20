@@ -34,11 +34,12 @@ RUNTIME_DISTRIBUTIONS = (
   "Pmw", "msgpack", "msgpack-python", "simplejson", "rules",
   "freeze-core",  # the executable's startup code and the native libraries of cx_Freeze
 )
+# Qt for Python: LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only (texts not in the wheels)
+QT_FOR_PYTHON_LICENSES = [LICENSES_DIR / "LGPL-3.0.txt", LICENSES_DIR / "GPL-3.0.txt"]
 # License texts of distributions whose metadata contains none
 EXTRA_LICENSE_FILES = {
-  # Qt for Python: LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only (texts not in the wheels)
-  "PySide6-Essentials": [LICENSES_DIR / "LGPL-3.0.txt", LICENSES_DIR / "GPL-3.0.txt"],
-  "shiboken6": [LICENSES_DIR / "LGPL-3.0.txt", LICENSES_DIR / "GPL-3.0.txt"],
+  "PySide6-Essentials": QT_FOR_PYTHON_LICENSES,
+  "shiboken6": QT_FOR_PYTHON_LICENSES,
   # Relative to the installed package; a pattern, so a Pmw update keeps working
   "Pmw": ["Pmw/Pmw_*/doc/copyright.html"],
 }
@@ -126,8 +127,12 @@ options = {
       "pymol.parser",
       "uuid",
     ],
-    # PyMOL would prefer PyQt5 if it were installed somewhere
+    # pymol.Qt also imports these bindings; keep cx_Freeze from bundling them if they are in the venv
     "excludes": ["PyQt5", "PySide2", "PyQt6"],
+    # Qt plugins a desktop PyMOL never loads, which pull in about 18 MB of Qml/Quick and
+    # Wayland compositor libraries: the virtual keyboard, the Wayland compositor (server)
+    # side and the EGLFS plugins for embedded devices
+    "bin_excludes": ["*qtvirtualkeyboardplugin*", "wayland-graphics-integration-server/*", "egldeviceintegrations/*"],
     # Files that are loaded dynamically and therefore not found by cx_Freeze
     "include_files": [
       (PYMOL_PACKAGE_DIR / CMD_MODULE_FILENAME, f"lib/pymol/{CMD_MODULE_FILENAME}"),
@@ -141,7 +146,7 @@ if sys.platform == "win32":
   # Bundles the Microsoft C++ runtime (vcruntime140.dll, msvcp140.dll, ...), which
   # cx_Freeze leaves out by default, so the app also starts on PCs without the
   # VC++ Redistributable. cx_Freeze downloads the latest runtime of Visual Studio
-  # 2022 from Microsoft (cached in %APPDATA%\cx_Freeze\vc_redist).
+  # 2022 from Microsoft (cached in %APPDATA%\cxfreeze\vc_redist).
   options["build_exe"]["include_msvcr"] = True
   options["build_exe"]["include_msvcr_version"] = "17"
 

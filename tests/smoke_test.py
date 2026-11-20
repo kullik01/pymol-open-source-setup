@@ -66,10 +66,14 @@ def check_online(a_tmp_dir: str) -> bool:
   # a certificate error fails at once, network problems get retried
   for tmp_attempt in range(1, 4):
     try:
-      urllib.request.urlopen("https://files.rcsb.org/header/1UBQ.cif", timeout=30).read(64)
+      with urllib.request.urlopen("https://files.rcsb.org/header/1UBQ.cif", timeout=30) as tmp_response:
+        tmp_response.read(64)
       break
-    except urllib.error.URLError as tmp_error:
-      if isinstance(tmp_error.reason, ssl.SSLError) or tmp_attempt == 3:
+    except OSError as tmp_error:
+      # URLError wraps the cause in "reason"; timeouts and resets while
+      # reading arrive unwrapped
+      tmp_reason = getattr(tmp_error, "reason", tmp_error)
+      if isinstance(tmp_reason, ssl.SSLCertVerificationError) or tmp_attempt == 3:
         raise
       time.sleep(10)
   cmd.fetch("1ubq", path=a_tmp_dir, type="cif", quiet=1)

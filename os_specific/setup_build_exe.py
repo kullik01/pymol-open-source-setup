@@ -39,7 +39,8 @@ EXTRA_LICENSE_FILES = {
   # Qt for Python: LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only (texts not in the wheels)
   "PySide6-Essentials": [LICENSES_DIR / "LGPL-3.0.txt", LICENSES_DIR / "GPL-3.0.txt"],
   "shiboken6": [LICENSES_DIR / "LGPL-3.0.txt", LICENSES_DIR / "GPL-3.0.txt"],
-  "Pmw": ["Pmw/Pmw_2_1_1/doc/copyright.html"],  # relative to the installed package
+  # Relative to the installed package; a pattern, so a Pmw update keeps working
+  "Pmw": ["Pmw/Pmw_*/doc/copyright.html"],
 }
 LICENSE_FILENAME_PATTERN = re.compile(r"^(LICEN[CS]E|COPYING|NOTICE|AUTHORS)", re.IGNORECASE)
 
@@ -48,8 +49,8 @@ def license_name(a_distribution: importlib.metadata.Distribution) -> str:
   """Returns a short license name from the metadata of a distribution."""
   metadata = a_distribution.metadata
   classifiers = [c.split(" :: ")[-1] for c in metadata.get_all("Classifier") or [] if c.startswith("License ::")]
-  name = metadata.get("License-Expression") or ", ".join(classifiers) or metadata.get("License") or "see license files"
-  return name.strip().splitlines()[0][:80]
+  name = (metadata.get("License-Expression") or ", ".join(classifiers) or metadata.get("License") or "").strip()
+  return name.splitlines()[0][:80] if name else "see license files"
 
 
 def collect_license_files(an_index_dir: pathlib.Path) -> list:
@@ -84,7 +85,10 @@ def collect_license_files(an_index_dir: pathlib.Path) -> list:
       if ".dist-info" in str(f) and LICENSE_FILENAME_PATTERN.match(f.name)
     ]
     for extra in EXTRA_LICENSE_FILES.get(name, []):
-      sources.append(extra if pathlib.Path(extra).is_absolute() else pathlib.Path(distribution.locate_file(extra)))
+      if pathlib.Path(extra).is_absolute():
+        sources.append(extra)
+      else:
+        sources.extend(pathlib.Path(distribution.locate_file("")).glob(extra))
     if not sources:
       sys.exit(f"No license text found for the bundled package {dist_name}; add one to EXTRA_LICENSE_FILES.")
     files += [(source, f"licenses/{dist_name}/{source.name}") for source in sources]

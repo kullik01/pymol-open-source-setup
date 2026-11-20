@@ -68,6 +68,23 @@ def bundle_libxcb_cursor() -> None:
     shutil.copy2(tmp_source.resolve(), tmp_qt_lib_dir / "libxcb-cursor.so.0")
 
 
+def thin_macos_app() -> None:
+  """Keeps only this Mac's architecture in the app's universal binaries (macOS).
+
+  The PySide6 wheels contain Qt for Intel and Apple Silicon, while each DMG is
+  for one architecture; thinning saves about a third of the DMG size.
+  build_dmg.sh checks afterwards that PyMOL, Qt and numpy match.
+  """
+  # arm64 or x86_64, the architecture of this Python and of the wheels installed for it
+  tmp_arch = platform.machine()
+  for tmp_app in const.DIST_DIR.glob("*.app"):
+    tmp_thin_app = tmp_app.with_name(f"{tmp_app.name}.thin")
+    utils.run(["ditto", "--arch", tmp_arch, tmp_app, tmp_thin_app])
+    shutil.rmtree(tmp_app)
+    tmp_thin_app.rename(tmp_app)
+    print(f"Thinned the universal binaries in {tmp_app.name} to {tmp_arch}")
+
+
 def build() -> None:
   """Builds the frozen application with cx_Freeze into the dist directory.
 
@@ -99,3 +116,5 @@ def build() -> None:
   )
   if const.LINUX:
     bundle_libxcb_cursor()
+  if const.MACOS:
+    thin_macos_app()

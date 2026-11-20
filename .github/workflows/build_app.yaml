@@ -102,6 +102,17 @@ jobs:
         timeout-minutes: 5
         run: tests/run_smoke_test.sh "dist/exe.win-amd64-${PYTHON_VERSION}/Open-Source-PyMOL.exe"
 
+      - name: GUI smoke test
+        timeout-minutes: 5
+        # The runner has no GPU (only OpenGL 1.1). Test a copy of the app with the bundled
+        # software OpenGL (Mesa) as opengl32.dll, like the troubleshooting note on the website;
+        # the copy keeps the DLL out of the installer and the ZIP.
+        run: |
+          GUI_TEST_DIR="$(cygpath -u "$RUNNER_TEMP")/gui-test"
+          cp -r "dist/exe.win-amd64-${PYTHON_VERSION}" "$GUI_TEST_DIR"
+          cp "$GUI_TEST_DIR/opengl32sw.dll" "$GUI_TEST_DIR/opengl32.dll"
+          tests/run_smoke_test.sh --gui "$GUI_TEST_DIR/Open-Source-PyMOL.exe"
+
       - name: Build installer
         shell: cmd
         run: win_automator.bat build inno_setup
@@ -206,6 +217,7 @@ jobs:
         timeout-minutes: 5
         run: |
           tests/run_smoke_test.sh "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app/Contents/MacOS/PyMOL"
+          tests/run_smoke_test.sh --gui "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app/Contents/MacOS/PyMOL"
           codesign --verify --deep "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app"
 
       - name: Install create-dmg

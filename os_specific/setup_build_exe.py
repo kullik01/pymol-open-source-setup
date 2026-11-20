@@ -19,7 +19,8 @@ from cx_Freeze import setup
 
 
 PROJECT_ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent
-PYMOL_PACKAGE_DIR = pathlib.Path(sysconfig.get_path("platlib"), "pymol")
+SITE_PACKAGES_DIR = pathlib.Path(sysconfig.get_path("platlib"))
+PYMOL_PACKAGE_DIR = SITE_PACKAGES_DIR / "pymol"
 # e.g. ".cpython-311-x86_64-linux-gnu.so", ".cpython-311-darwin.so", ".cp311-win_amd64.pyd"
 CMD_MODULE_FILENAME = f"_cmd{sysconfig.get_config_var('EXT_SUFFIX')}"
 
@@ -69,6 +70,8 @@ def collect_license_files(an_index_dir: pathlib.Path) -> list:
     (LICENSES_DIR / "GPL-3.0.txt", "licenses/GPL-3.0.txt"),
     (LICENSES_DIR / "LGPL-3.0.txt", "licenses/LGPL-3.0.txt"),
     (LICENSES_DIR / "Apache-2.0.txt", "licenses/Apache-2.0.txt"),
+    (LICENSES_DIR / "Mesa-MIT.txt", "licenses/Mesa-MIT.txt"),
+    (LICENSES_DIR / "LLVM-LICENSE.txt", "licenses/LLVM-LICENSE.txt"),
     (PROJECT_ROOT_DIR / "LICENSE", "licenses/PyMOL-Open-Source-setup/LICENSE"),
     (python_license, "licenses/Python/LICENSE.txt"),
   ]
@@ -149,6 +152,12 @@ if sys.platform == "win32":
   # 2022 from Microsoft (cached in %APPDATA%\cxfreeze\vc_redist).
   options["build_exe"]["include_msvcr"] = True
   options["build_exe"]["include_msvcr_version"] = "17"
+  # Qt's software OpenGL (Mesa llvmpipe) for PCs, VMs and remote desktops without a usable
+  # OpenGL driver (cx_Freeze copies it only for QtWebEngine). PyMOL itself is linked against
+  # opengl32.dll, so users copy it to opengl32.dll next to the executable (see the website).
+  options["build_exe"]["include_files"].append(
+    (SITE_PACKAGES_DIR / "PySide6" / "opengl32sw.dll", "opengl32sw.dll")
+  )
 
 if sys.platform == "darwin":
   options["build_exe"]["includes"].append("ssl")

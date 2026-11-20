@@ -9,6 +9,7 @@ Note: the certificate check fails if only SSL_CERT_DIR is set (lazily loaded).
 
 Prints "SMOKE TEST OK" on success, otherwise exits with status 1.
 """
+import faulthandler
 import os
 import pathlib
 import sys
@@ -18,6 +19,13 @@ import time
 import traceback
 import urllib.error
 import urllib.request
+
+# On a crash (e.g. in the OpenGL driver) print the Python stacks of all threads.
+# Enable it before importing PyMOL, which replaces sys.stderr with an object without fileno().
+try:
+  faulthandler.enable(file=sys.__stderr__)
+except (AttributeError, ValueError, OSError):
+  pass  # no usable stderr (e.g. a GUI executable without console)
 
 import pymol
 from pymol import cmd

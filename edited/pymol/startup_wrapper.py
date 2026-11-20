@@ -1,8 +1,6 @@
 import os
 import sys
 
-import pymol
-
 # System certificate files (CA bundles), in the order they are tried
 CA_BUNDLE_FILEPATHS = {
   "darwin": ("/etc/ssl/cert.pem",),
@@ -25,6 +23,8 @@ def _use_system_ca_certificates() -> None:
   the same problem. Windows uses the Windows certificate store instead.
 
   Nothing is changed if the user already set SSL_CERT_FILE or SSL_CERT_DIR.
+  Must run before ssl is imported: cx_Freeze's ssl hook then keeps this file
+  instead of the certificate file it copied from the build machine.
   """
   if os.environ.get("SSL_CERT_FILE") or os.environ.get("SSL_CERT_DIR"):
     return
@@ -35,33 +35,18 @@ def _use_system_ca_certificates() -> None:
       return
 
 
-def _prefer_xwayland_on_linux() -> None:
-  """Runs PyMOL through XWayland (Qt "xcb") on Linux Wayland sessions.
+def _use_pyside6() -> None:
+  """Selects PySide6 for PyMOL's Qt layer (pymol.Qt), the only Qt binding of the app.
 
-  The bundled Qt 5 auto-selects its own Wayland platform plugin on Wayland
-  sessions (e.g. KDE Plasma 6). PyMOL's legacy QGLWidget does not work with
-  it: the viewer turns translucent/black and flickers on resize.
-
-  Nothing is changed if:
-    - the OS is not Linux (Windows and macOS are unaffected),
-    - the user already chose a platform via QT_QPA_PLATFORM,
-    - the session is not Wayland (plain X11 already uses xcb),
-    - no X display is available (no XWayland), to avoid a startup crash.
+  Overrides a QT_API the user set for another binding (e.g. pyqt5), which
+  the app does not contain and pymol.Qt would then fail to import.
   """
-  if not sys.platform.startswith("linux"):
-    return
-  if os.environ.get("QT_QPA_PLATFORM"):
-    return
-  is_wayland_session = (
-    os.environ.get("XDG_SESSION_TYPE", "").lower() == "wayland"
-    or bool(os.environ.get("WAYLAND_DISPLAY"))
-  )
-  if is_wayland_session and os.environ.get("DISPLAY"):
-    os.environ["QT_QPA_PLATFORM"] = "xcb"
+  os.environ["QT_API"] = "pyside6"
 
 
 if __name__ == '__main__':
   _use_system_ca_certificates()
-  _prefer_xwayland_on_linux()
+  _use_pyside6()
 
+  import pymol  # only after the environment is set up (imports ssl)
   pymol.launch(sys.argv)

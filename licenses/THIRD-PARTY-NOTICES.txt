@@ -13,16 +13,18 @@ endorsed or supported by Schrodinger, LLC.
 Components without a license file of their own
 ----------------------------------------------
 
-Qt 5 (LGPL v3) and its third-party parts
-    Shipped by PyQt5-Qt5, see PyQt5-Qt5/LICENSE. The licenses of the third-party
-    parts of Qt are listed at https://doc.qt.io/qt-5/licenses-used-in-qt.html
-
-PyQt5 (GPL v3)
-    See GPL-3.0.txt. Source code: https://pypi.org/project/PyQt5/#files
+Qt 6 and Qt for Python (PySide6, shiboken6)
+    Used under the LGPL v3 (LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only),
+    see LGPL-3.0.txt and GPL-3.0.txt. The Qt libraries are shared libraries
+    in the PySide6 folder of the application and can be replaced.
+    The licenses of the third-party parts of Qt are listed at
+    https://doc.qt.io/qt-6/licenses-used-in-qt.html
+    Source code: https://download.qt.io/official_releases/QtForPython/ and
+    https://download.qt.io/official_releases/qt/
 
 OpenSSL 3 (Apache License 2.0)
-    See Apache-2.0.txt. Bundled by cx_Freeze (Linux, macOS) and by Python
-    (Windows). Source code: https://www.openssl.org/source/
+    See Apache-2.0.txt. Bundled by cx_Freeze/freeze-core (Linux, macOS) and by
+    Python (Windows). Source code: https://www.openssl.org/source/
 
 Microsoft Visual C++ runtime (Windows only)
     See share/licenses/vc_redist in the application folder.
@@ -31,10 +33,7 @@ cx_Freeze (Python Software Foundation-style license)
     Freezes the application; see frozen_application_license.txt in the
     application folder.
 
-Native libraries of the Linux build (bundled by cx_Freeze):
-    GNU readline 6.2      GPL v3, see GPL-3.0.txt
-                          Source code: https://ftp.gnu.org/gnu/readline/
-    ncurses (libtinfo)    MIT-style license
+Native libraries of the Linux build (bundled by cx_Freeze/freeze-core):
     SQLite                public domain
     Tcl/Tk 8.6            Tcl/Tk license (BSD-style)
     libffi                MIT license
@@ -44,6 +43,7 @@ Native libraries of the Linux build (bundled by cx_Freeze):
     FreeType              FreeType License (BSD-style)
     Fontconfig, Xft       MIT-style licenses
     libuuid               BSD license
+    libxcb-cursor         MIT license (bundled for Qt's X11 support)
 
 OpenBLAS, libgfortran and libquadmath (bundled by numpy)
     Covered by numpy/LICENSE.txt.

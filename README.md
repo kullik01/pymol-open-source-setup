@@ -45,6 +45,8 @@ The version of the packages (e.g. 3.1.0.4+4) is the version of the PyMOL wheel p
 this setup. The application itself shows the version of the PyMOL core it is built from (currently
 3.2.0a, a development version).
 
+The GUI uses Qt 6 (PySide6 6.9) and runs natively on Wayland; `QT_QPA_PLATFORM=xcb` selects XWayland.
+
 ## From source
 The following information is about building a platform dependent package/setup from source.
 The GitHub action [build_app.yaml](.github/workflows/build_app.yaml) runs exactly these steps
@@ -113,7 +115,7 @@ on the tag of the latest release or on `main` (only if its version is already re
 - **Open-Source PyMOL:** Copyright (c) [Schrodinger, LLC](https://www.schrodinger.com/), published under
   a BSD-like license, see [LICENSE_Schrodinger](LICENSE_Schrodinger).
 - **This repository** (build scripts, edited PyMOL files, tests): BSD-3-Clause, see [LICENSE](LICENSE).
-- **Third-party components:** the packages also contain Python, Qt/PyQt5, OpenSSL and other open-source
+- **Third-party components:** the packages also contain Python, Qt/PySide6, OpenSSL and other open-source
   components. Every package ships their license texts in its `licenses` folder; see
   [licenses/THIRD-PARTY-NOTICES.txt](licenses/THIRD-PARTY-NOTICES.txt).
 

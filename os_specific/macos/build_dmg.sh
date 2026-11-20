@@ -20,21 +20,23 @@ if [ ! -d "$APP_PATH" ]; then
 fi
 
 # The DMG name tells which Macs the app runs on, based on the built app itself:
-# PyMOL, Qt and numpy must all be built for the same single architecture
+# PyMOL's core module has a single architecture; Qt (universal) and numpy must contain it
 LIB_DIR="$APP_PATH/Contents/Resources/lib"
-ARCHS="$(for MODULE in "$LIB_DIR"/pymol/_cmd.*.so "$LIB_DIR"/PyQt5/QtCore.abi3.so \
-    "$LIB_DIR"/numpy/core/_multiarray_umath.*.so; do
-  lipo -archs "$MODULE" || exit 1
-done | sort -u)"
-case "$ARCHS" in
+CMD_ARCHS="$(lipo -archs "$LIB_DIR"/pymol/_cmd.*.so)"
+case "$CMD_ARCHS" in
   arm64) ARCH_LABEL="AppleSilicon" ;;
   x86_64) ARCH_LABEL="Intel" ;;
   *)
-    echo "PyMOL, Qt and numpy in ${APP_PATH} are built for '${ARCHS//$'\n'/, }'" \
-      "(expected all arm64 or all x86_64)" >&2
+    echo "PyMOL's _cmd module in ${APP_PATH} is built for '${CMD_ARCHS}' (expected arm64 or x86_64)" >&2
     exit 1
     ;;
 esac
+for MODULE in "$LIB_DIR"/PySide6/QtCore.abi3.so "$LIB_DIR"/numpy/core/_multiarray_umath.*.so; do
+  if ! lipo -archs "$MODULE" | grep -qw "$CMD_ARCHS"; then
+    echo "${MODULE#"$LIB_DIR"/} is not built for ${CMD_ARCHS} like PyMOL's _cmd module" >&2
+    exit 1
+  fi
+done
 DMG_NAME="${APP_NAME}_v${VERSION}_macOS_${ARCH_LABEL}"
 CREATE_DMG="${CREATE_DMG:-create-dmg}"
 if ! command -v "$CREATE_DMG" > /dev/null; then

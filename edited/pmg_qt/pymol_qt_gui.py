@@ -1255,9 +1255,9 @@ def execapp():
     # BEGIN EDITED CODE SEGMENT
     # :author Hannah Kullik
     # Link the window to the installed open-source-pymol.desktop entry.
-    # On native Wayland, Qt 5 cannot set window icons; the compositor takes
-    # the logo from the desktop entry matching this app id. (On X11/XWayland
-    # the icon comes from setWindowIcon and StartupWMClass in the entry.)
+    # On native Wayland the compositor matches the window to the desktop
+    # entry by this app id (taskbar icon and grouping). On X11 the icon comes
+    # from setWindowIcon and StartupWMClass in the entry.
     if pymol.IS_LINUX and hasattr(app, 'setDesktopFileName'):
         app.setDesktopFileName('open-source-pymol')
     # END EDITED CODE SEGMENT

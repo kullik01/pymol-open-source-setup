@@ -32,6 +32,11 @@ updates:
       # Newer biopython has no Python 3.13 wheels for Intel Macs
       - dependency-name: "biopython"
         versions: [">1.86"]
+      # PySide6 6.10+ needs macOS 13 and glibc 2.34; 6.9 keeps macOS 12 and RHEL/Alma 8
+      - dependency-name: "pyside6-essentials"
+        versions: [">=6.10"]
+      - dependency-name: "shiboken6"
+        versions: [">=6.10"]
 
   - package-ecosystem: "pre-commit"
     directory: "/"

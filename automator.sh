@@ -24,7 +24,8 @@ if [ "${1:-}" = "setup" ]; then
     # os_specific/macos/Info.plist); otherwise uv may take e.g. numpy's macOS 14 wheels.
     PLATFORM_ARGS=()
     if [ "$(uname -s)" = "Darwin" ]; then
-        export MACOSX_DEPLOYMENT_TARGET=12.0
+        MACOSX_DEPLOYMENT_TARGET="$(plutil -extract LSMinimumSystemVersion raw os_specific/macos/Info.plist)" || exit 1
+        export MACOSX_DEPLOYMENT_TARGET
         PLATFORM_ARGS=(--python-platform "$(uname -m | sed 's/arm64/aarch64/')-apple-darwin")
     fi
     uv venv --clear .venv || exit 1

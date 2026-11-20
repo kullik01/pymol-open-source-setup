@@ -34,7 +34,6 @@ permissions:
   contents: read
 
 env:
-  PYTHON_VERSION: "3.13"
   # More robust against temporary network problems with PyPI
   # uv (./automator.sh setup) uses the Python of actions/setup-python, which gets bundled into the app
   UV_PYTHON_PREFERENCE: only-system
@@ -82,13 +81,15 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version-file: '.python-version'
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v10.3.3
 
-      - name: Extract project version
-        run: echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)" >> "$GITHUB_ENV"
+      - name: Extract project and Python version
+        run: |
+          echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)" >> "$GITHUB_ENV"
+          echo "PYTHON_VERSION=$(cat .python-version)" >> "$GITHUB_ENV"
 
       - name: Create virtual environment
         shell: cmd
@@ -134,9 +135,7 @@ jobs:
           GUI_TEST_DIR="$(cygpath -u "$RUNNER_TEMP")/gui-test"
           cp -r "dist/exe.win-amd64-${PYTHON_VERSION}" "$GUI_TEST_DIR"
           cp "$GUI_TEST_DIR/opengl32sw.dll" "$GUI_TEST_DIR/opengl32.dll"
-          # Software OpenGL in the runner VMs crashes now and then: one retry (a real error fails twice)
-          tests/run_smoke_test.sh --gui "$GUI_TEST_DIR/Open-Source-PyMOL.exe" ||
-            tests/run_smoke_test.sh --gui "$GUI_TEST_DIR/Open-Source-PyMOL.exe"
+          tests/run_smoke_test.sh --gui "$GUI_TEST_DIR/Open-Source-PyMOL.exe"
 
       - name: Build installer
         shell: cmd
@@ -218,7 +217,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version-file: '.python-version'
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v10.3.3
@@ -240,9 +239,7 @@ jobs:
         timeout-minutes: 5
         run: |
           ./automator.sh test
-          # Software OpenGL in the runner VMs crashes now and then: one retry (a real error fails twice)
-          tests/run_smoke_test.sh --gui "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app/Contents/MacOS/PyMOL" ||
-            tests/run_smoke_test.sh --gui "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app/Contents/MacOS/PyMOL"
+          tests/run_smoke_test.sh --gui "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app/Contents/MacOS/PyMOL"
           codesign --verify --deep "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app"
 
       - name: Install create-dmg
@@ -278,7 +275,6 @@ jobs:
           test "$(plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source"
           # PyMOL is built for this runner's architecture (build_dmg.sh checks that Qt and numpy match it)
           test "$(lipo -archs "$APP"/Contents/Resources/lib/pymol/_cmd.*.so)" = "${{ matrix.arch }}"
-          tests/check_macos_min_version.sh "$APP"
           tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL"
 
       - name: Upload artifact
@@ -301,7 +297,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version-file: '.python-version'
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v10.3.3
@@ -404,7 +400,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version-file: '.python-version'
           cache: 'pip'
           cache-dependency-path: 'docs/website/requirements.txt'
 

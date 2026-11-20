@@ -1,6 +1,6 @@
 biopython==1.78
 cx_Freeze==8.0.0
-filelock==3.18.0
+filelock==4.2.11
 msgpack-python==0.5.6
 msgpack==1.1.0
 numpy==1.26.4

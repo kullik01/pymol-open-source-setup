@@ -19,3 +19,6 @@ updates:
     groups:
       python-minor-and-patch:
         update-types: ["minor", "patch"]
+        # A new PyMOL wheel needs the files in edited/ ported first (see
+        # automations/build_exe.py), so it gets a pull request of its own
+        exclude-patterns: ["pymol-open-source-whl"]

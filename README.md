@@ -54,7 +54,7 @@ for all three platforms.
 
 ### Prerequisites
 - [uv](https://docs.astral.sh/uv/getting-started/installation/); it also installs the Python of `.python-version` if needed
-- Windows: [Inno Setup 6](https://jrsoftware.org/isinfo.php) (default install location or `ISCC.exe` on the `PATH`)
+- Windows: [Inno Setup 7](https://jrsoftware.org/isinfo.php) (default install location or `ISCC.exe` on the `PATH`)
 - Linux (**only** for building the .deb/.rpm packages): [fpm](https://fpm.readthedocs.io/) and `rpmbuild`
   - Debian/Ubuntu: `sudo apt-get install ruby rpm && sudo gem install fpm`
   - Fedora: `sudo dnf install ruby rpm-build && sudo gem install fpm`

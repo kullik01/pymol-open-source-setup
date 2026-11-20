@@ -3,7 +3,7 @@ cx_Freeze==8.0.0
 filelock==3.18.0
 msgpack-python==0.5.6
 msgpack==1.1.0
-numpy==1.26.4
+numpy==2.5.5
 packaging==24.2
 patchelf==0.17.2.4
 Pmw==2.1.1

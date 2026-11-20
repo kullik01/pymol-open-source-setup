@@ -80,6 +80,7 @@ PACKAGE_CONTENTS=(
   "$STAGING_DIR/open-source-pymol.desktop=/usr/share/applications/open-source-pymol.desktop"
   "os_specific/linux/open-source-pymol-256.png=/usr/share/icons/hicolor/256x256/apps/open-source-pymol.png"
   "$STAGING_DIR/${METAINFO}=/usr/share/metainfo/${METAINFO}"
+  "os_specific/linux/open-source-pymol-mime.xml=/usr/share/mime/packages/open-source-pymol.xml"
 )
 
 # Portable archive: extracts into a single PyMOL-Open-Source-<version>/ directory

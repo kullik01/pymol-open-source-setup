@@ -169,6 +169,12 @@ jobs:
           }
           $version = (Get-ItemProperty $env:UNINSTALL_KEY).DisplayVersion
           if ($version -ne $env:PROJECT_VERSION) { throw "Uninstall entry has version '$version'" }
+          # File types: the open command starts the installed app
+          $command = (Get-ItemProperty 'HKCU:\Software\Classes\OpenSourcePyMOL.File\shell\open\command').'(default)'
+          if ($command -ne "`"$exe`" `"%1`"") { throw "Unexpected open command: $command" }
+          foreach ($ext in '.pdb', '.cif', '.pse') {
+            if ($null -eq (Get-ItemProperty "HKCU:\Software\Classes\$ext\OpenWithProgids").'OpenSourcePyMOL.File') { throw "$ext not registered" }
+          }
           "INSTALLED_APP=$exe" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
 
       - name: Smoke test of the installed app
@@ -188,6 +194,8 @@ jobs:
             if (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk')) { throw "Shortcut left in $folder" }
           }
           if (Test-Path $env:UNINSTALL_KEY) { throw "Uninstall entry left" }
+          if (Test-Path 'HKCU:\Software\Classes\OpenSourcePyMOL.File') { throw "File type registration left" }
+          if ((Get-ItemProperty 'HKCU:\Software\Classes\.pse' -ErrorAction SilentlyContinue).'(default)' -eq 'OpenSourcePyMOL.File') { throw ".pse association left" }
 
       - name: Create portable archive
         run: 7z a -tzip -bso0 -bsp0 "os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_x64_portable.zip" "./dist/exe.win-amd64-${PYTHON_VERSION}/*"
@@ -282,6 +290,8 @@ jobs:
           codesign --verify --deep "$APP"
           plutil -lint "$APP/Contents/Info.plist"
           test "$(plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source"
+          # File types (.pdb, .cif, .pse) that open with PyMOL in Finder
+          test "$(plutil -extract UTExportedTypeDeclarations.0.UTTypeIdentifier raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source.pse"
           # PyMOL is built for this runner's architecture (build_dmg.sh checks that Qt and numpy match it)
           test "$(lipo -archs "$APP"/Contents/Resources/lib/pymol/_cmd.*.so)" = "${{ matrix.arch }}"
           tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL"

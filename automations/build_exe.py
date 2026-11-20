@@ -28,7 +28,7 @@ import utils
 # Version of pymol-open-source-whl that the files in edited/ were made for.
 # They are copies of the wheel's files with a few edits ("BEGIN EDITED CODE
 # SEGMENT"), so a newer wheel needs them ported before they may replace its files.
-EDITED_FOR_PYMOL_WHL_VERSION = "3.1.0.4"
+EDITED_FOR_PYMOL_WHL_VERSION = "3.2.0.3"
 
 # Project files that replace or extend files of the installed pymol package
 # before it gets frozen: (source, destination)

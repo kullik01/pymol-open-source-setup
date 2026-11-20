@@ -34,7 +34,6 @@ permissions:
   contents: read
 
 env:
-  PYTHON_VERSION: "3.11"
   # More robust against temporary network problems with PyPI
   # uv (./automator.sh setup) uses the Python of actions/setup-python, which gets bundled into the app
   UV_PYTHON_PREFERENCE: only-system
@@ -82,13 +81,15 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version-file: '.python-version'
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v10.3.3
 
-      - name: Extract project version
-        run: echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)" >> "$GITHUB_ENV"
+      - name: Extract project and Python version
+        run: |
+          echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)" >> "$GITHUB_ENV"
+          echo "PYTHON_VERSION=$(cat .python-version)" >> "$GITHUB_ENV"
 
       - name: Create virtual environment
         shell: cmd
@@ -216,7 +217,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version-file: '.python-version'
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v10.3.3
@@ -296,7 +297,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version-file: '.python-version'
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v10.3.3
@@ -399,7 +400,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version-file: '.python-version'
           cache: 'pip'
           cache-dependency-path: 'docs/website/requirements.txt'
 

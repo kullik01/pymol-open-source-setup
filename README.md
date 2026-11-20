@@ -1,6 +1,6 @@
 # Unofficial PyMOL(TM) Setup
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-blue.svg)](https://GitHub.com/kullik01/pymol-open-source-setup/graphs/commit-activity)
-[![Python Version](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
+[![Python Version](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![GitHub issues](https://img.shields.io/github/issues/kullik01/pymol-open-source-setup)](https://GitHub.com/kullik01/pymol-open-source-setup/issues/)
 
@@ -53,7 +53,7 @@ The GitHub action [build_app.yaml](.github/workflows/build_app.yaml) runs exactl
 for all three platforms.
 
 ### Prerequisites
-- [uv](https://docs.astral.sh/uv/getting-started/installation/); it also installs the Python of `.python-version` (3.11) if needed
+- [uv](https://docs.astral.sh/uv/getting-started/installation/); it also installs the Python of `.python-version` if needed
 - Windows: [Inno Setup 6](https://jrsoftware.org/isinfo.php) (default install location or `ISCC.exe` on the `PATH`)
 - Linux (**only** for building the .deb/.rpm packages): [fpm](https://fpm.readthedocs.io/) and `rpmbuild`
   - Debian/Ubuntu: `sudo apt-get install ruby rpm && sudo gem install fpm`
@@ -73,7 +73,7 @@ On Windows, use `.\win_automator.bat` instead of `./automator.sh`.
    ```
    | Platform      | Output                                         |
    |---------------|------------------------------------------------|
-   | Windows/Linux | `dist/exe.<platform>-3.11/`                    |
+   | Windows/Linux | `dist/exe.<platform>-<Python version>/`        |
    | macOS         | `dist/PyMOL-Open-Source-<version>.app`         |
 3. Check the build with the smoke test (`test gui` also starts the Qt GUI):
    ```shell

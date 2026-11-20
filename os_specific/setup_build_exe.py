@@ -21,7 +21,7 @@ from cx_Freeze import setup
 PROJECT_ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent
 SITE_PACKAGES_DIR = pathlib.Path(sysconfig.get_path("platlib"))
 PYMOL_PACKAGE_DIR = SITE_PACKAGES_DIR / "pymol"
-# e.g. ".cpython-311-x86_64-linux-gnu.so", ".cpython-311-darwin.so", ".cp311-win_amd64.pyd"
+# e.g. ".cpython-313-x86_64-linux-gnu.so", ".cpython-313-darwin.so", ".cp313-win_amd64.pyd"
 CMD_MODULE_FILENAME = f"_cmd{sysconfig.get_config_var('EXT_SUFFIX')}"
 
 with open(PROJECT_ROOT_DIR / "pyproject.toml", "rb") as tmp_file:

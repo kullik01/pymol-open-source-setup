@@ -20,8 +20,16 @@ if [ "${1:-}" = "setup" ]; then
         echo "uv is missing, see https://docs.astral.sh/uv/getting-started/installation/" >&2
         exit 1
     fi
+    # macOS: only wheels that run on the app's minimum macOS (LSMinimumSystemVersion in
+    # os_specific/macos/Info.plist); otherwise uv may take e.g. numpy's macOS 14 wheels.
+    PLATFORM_ARGS=()
+    if [ "$(uname -s)" = "Darwin" ]; then
+        MACOSX_DEPLOYMENT_TARGET="$(plutil -extract LSMinimumSystemVersion raw os_specific/macos/Info.plist)" || exit 1
+        export MACOSX_DEPLOYMENT_TARGET
+        PLATFORM_ARGS=(--python-platform "$(uname -m | sed 's/arm64/aarch64/')-apple-darwin")
+    fi
     uv venv --clear .venv || exit 1
-    exec uv pip install --compile-bytecode --python .venv -r requirements.txt
+    exec uv pip install --compile-bytecode "${PLATFORM_ARGS[@]}" --python .venv -r requirements.txt
 fi
 if [ ! -x ./.venv/bin/python ]; then
     echo "The virtual environment does not exist yet. Create it with: ./automator.sh setup" >&2

@@ -31,12 +31,14 @@ case "$CMD_ARCHS" in
     exit 1
     ;;
 esac
-for MODULE in "$LIB_DIR"/PySide6/QtCore.abi3.so "$LIB_DIR"/numpy/core/_multiarray_umath.*.so; do
+for MODULE in "$LIB_DIR"/PySide6/QtCore.abi3.so "$LIB_DIR"/numpy/_core/_multiarray_umath.*.so; do
   if ! lipo -archs "$MODULE" | grep -qw "$CMD_ARCHS"; then
     echo "${MODULE#"$LIB_DIR"/} is not built for ${CMD_ARCHS} like PyMOL's _cmd module" >&2
     exit 1
   fi
 done
+# No binary may need a newer macOS than the app's minimum (e.g. a numpy wheel for macOS 14)
+tests/check_macos_min_version.sh "$APP_PATH"
 DMG_NAME="${APP_NAME}_v${VERSION}_macOS_${ARCH_LABEL}"
 CREATE_DMG="${CREATE_DMG:-create-dmg}"
 if ! command -v "$CREATE_DMG" > /dev/null; then

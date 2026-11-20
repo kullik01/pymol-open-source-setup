@@ -19,7 +19,6 @@ import os
 import pathlib
 import platform
 import shutil
-import subprocess
 import sys
 
 import const
@@ -69,34 +68,21 @@ def bundle_libxcb_cursor() -> None:
     shutil.copy2(tmp_source.resolve(), tmp_qt_lib_dir / "libxcb-cursor.so.0")
 
 
-def is_universal_binary(a_path: pathlib.Path) -> bool:
-  """True for a macOS universal (fat) Mach-O file."""
-  with open(a_path, "rb") as tmp_file:
-    header = tmp_file.read(8)
-  # 0xcafebabe is also the magic of Java class files, which have a large second field
-  return len(header) == 8 and header[:4] == b"\xca\xfe\xba\xbe" and int.from_bytes(header[4:], "big") < 10
-
-
 def thin_macos_app() -> None:
-  """Keeps only the architecture of PyMOL's _cmd module in universal binaries (macOS).
+  """Keeps only this Mac's architecture in the app's universal binaries (macOS).
 
   The PySide6 wheels contain Qt for Intel and Apple Silicon, while each DMG is
   for one architecture; thinning saves about a third of the DMG size.
+  build_dmg.sh checks afterwards that PyMOL, Qt and numpy match.
   """
+  # arm64 or x86_64, the architecture of this Python and of the wheels installed for it
+  tmp_arch = platform.machine()
   for tmp_app in const.DIST_DIR.glob("*.app"):
-    tmp_cmd_module = next(tmp_app.glob("Contents/Resources/lib/pymol/_cmd.*.so"))
-    tmp_arch = subprocess.run(
-      ["lipo", "-archs", str(tmp_cmd_module)], capture_output=True, text=True, check=True
-    ).stdout.strip()
-    if " " in tmp_arch:
-      sys.exit(f"PyMOL's _cmd module is built for several architectures ({tmp_arch}).")
-    tmp_count = 0
-    for tmp_path in tmp_app.rglob("*"):
-      if tmp_path.is_symlink() or not tmp_path.is_file() or not is_universal_binary(tmp_path):
-        continue
-      utils.run(["lipo", tmp_path, "-thin", tmp_arch, "-output", tmp_path])
-      tmp_count += 1
-    print(f"Thinned {tmp_count} universal binaries in {tmp_app.name} to {tmp_arch}")
+    tmp_thin_app = tmp_app.with_name(f"{tmp_app.name}.thin")
+    utils.run(["ditto", "--arch", tmp_arch, tmp_app, tmp_thin_app])
+    shutil.rmtree(tmp_app)
+    tmp_thin_app.rename(tmp_app)
+    print(f"Thinned the universal binaries in {tmp_app.name} to {tmp_arch}")
 
 
 def build() -> None:

@@ -28,8 +28,7 @@ def _use_system_ca_certificates() -> None:
   """
   if os.environ.get("SSL_CERT_FILE") or os.environ.get("SSL_CERT_DIR"):
     return
-  platform = "linux" if sys.platform.startswith("linux") else sys.platform
-  for tmp_filepath in CA_BUNDLE_FILEPATHS.get(platform, ()):
+  for tmp_filepath in CA_BUNDLE_FILEPATHS.get(sys.platform, ()):
     if os.path.isfile(tmp_filepath):
       os.environ["SSL_CERT_FILE"] = tmp_filepath
       os.environ.setdefault("REQUESTS_CA_BUNDLE", tmp_filepath)

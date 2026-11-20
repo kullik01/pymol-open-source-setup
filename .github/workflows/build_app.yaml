@@ -46,6 +46,9 @@ jobs:
   # ----- Windows build section
   build-windows:
     runs-on: windows-latest
+    env:
+      # Uninstall entry of the installer (AppId in os_specific/windows/inno_setup/setup.iss)
+      UNINSTALL_KEY: 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{192F52C3-D86D-4735-9929-C7DF593CB534}_is1'
     defaults:
       run:
         shell: bash
@@ -78,8 +81,16 @@ jobs:
           if ($hash -ne '9c73c3bae7ed48d44112a0f48e66742c00090bdb5bef71d9d3c056c66e97b732') { throw "Unexpected SHA-256 of the Inno Setup installer: $hash" }
           Start-Process -FilePath "$env:RUNNER_TEMP\innosetup.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait
 
+      - name: Cache the Microsoft C++ runtime
+        # cx_Freeze downloads it from Microsoft once; the cache keeps builds reproducible.
+        # Change the key to take a newer runtime.
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Roaming\cx_Freeze\vc_redist
+          key: msvc-runtime-17-v1
+
       - name: Build frozen application
-        # Also downloads the Microsoft C++ runtime, which is bundled into the app
+        # Also downloads the Microsoft C++ runtime (if not cached), which is bundled into the app
         timeout-minutes: 30
         shell: cmd
         run: win_automator.bat build app
@@ -112,8 +123,7 @@ jobs:
           foreach ($folder in [Environment]::GetFolderPath('CommonDesktopDirectory'), [Environment]::GetFolderPath('CommonPrograms'), [Environment]::GetFolderPath('CommonStartMenu')) {
             if (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk')) { throw "Shortcut in the All Users folder $folder" }
           }
-          $key = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{192F52C3-D86D-4735-9929-C7DF593CB534}_is1'
-          $version = (Get-ItemProperty $key).DisplayVersion
+          $version = (Get-ItemProperty $env:UNINSTALL_KEY).DisplayVersion
           if ($version -ne $env:PROJECT_VERSION) { throw "Uninstall entry has version '$version'" }
           "INSTALLED_APP=$exe" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
 
@@ -133,7 +143,7 @@ jobs:
           foreach ($folder in [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs')) {
             if (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk')) { throw "Shortcut left in $folder" }
           }
-          if (Test-Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{192F52C3-D86D-4735-9929-C7DF593CB534}_is1') { throw "Uninstall entry left" }
+          if (Test-Path $env:UNINSTALL_KEY) { throw "Uninstall entry left" }
 
       - name: Create portable archive
         run: 7z a -tzip -bso0 -bsp0 "os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_x64_portable.zip" "./dist/exe.win-amd64-${PYTHON_VERSION}/*"

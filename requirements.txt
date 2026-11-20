@@ -10,7 +10,7 @@ pymol-open-source-whl==3.1.0.4
 PySide6-Essentials==6.9.3
 rules==3.5
 shiboken6==6.9.3
-simplejson==3.20.1
+simplejson==4.2.0
 
 # Build tools
 cx_Freeze==8.7.4

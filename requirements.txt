@@ -4,7 +4,7 @@
 # Bundled into the application
 biopython==1.78
 msgpack==1.1.0
-numpy==1.26.4
+numpy==2.4.6
 Pmw==2.1.1
 pymol-open-source-whl==3.1.0.4
 PySide6-Essentials==6.9.3

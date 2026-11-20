@@ -74,7 +74,7 @@ On Windows, use `.\win_automator.bat` instead of `./automator.sh`.
    | Platform      | Output                                         |
    |---------------|------------------------------------------------|
    | Windows/Linux | `dist/exe.<platform>-<Python version>/`        |
-   | macOS         | `dist/PyMOL-Open-Source-<version>.app`         |
+   | macOS         | `dist/PyMOL-Open-Source.app`                   |
 3. Check the build with the smoke test (`test gui` also starts the Qt GUI):
    ```shell
    ./automator.sh test
@@ -145,6 +145,9 @@ Before publishing, test once by hand what CI cannot (with the files of the draft
 - [ ] **Linux:** install the `.deb` or `.rpm`, start PyMOL from the application menu,
   double-click a `.pse` file in the file manager.
 - [ ] **Everywhere:** `fetch 1ubq` loads a structure (internet access).
+
+Tested releases:
+- v3.2.0.3+1 (20 Nov 2026): all checks passed on Windows, macOS and Linux.
 
 The website is only published for published releases. To publish website changes
 without a release, run the "Build Docs" action manually (Actions > Build Docs > Run workflow)

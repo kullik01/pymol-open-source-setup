@@ -139,7 +139,7 @@ def build() -> None:
   """Builds the frozen application with cx_Freeze into the dist directory.
 
   Windows/Linux: dist/exe.<platform>-<python version>/
-  macOS: dist/PyMOL-Open-Source-<version>.app
+  macOS: dist/PyMOL-Open-Source.app
   """
   tmp_installed_version = importlib.metadata.version("pymol-open-source-whl")
   if tmp_installed_version != EDITED_FOR_PYMOL_WHL_VERSION:

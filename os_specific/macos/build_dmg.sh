@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Packages the macOS app bundle (dist/PyMOL-Open-Source-<version>.app) as a DMG
+# Packages the macOS app bundle (dist/PyMOL-Open-Source.app) as a DMG
 # into os_specific/dist. Run "./automator.sh build app" first.
 #
 # Usage: os_specific/macos/build_dmg.sh
@@ -11,7 +11,8 @@ cd "$ROOT_DIR"
 
 APP_NAME="PyMOL-Open-Source"
 VERSION="$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)"
-APP_PATH="dist/${APP_NAME}-${VERSION}.app"
+# No version in the app name, so a newer app replaces the old one in Applications
+APP_PATH="dist/${APP_NAME}.app"
 OUT_DIR="os_specific/dist"
 
 if [ ! -d "$APP_PATH" ]; then

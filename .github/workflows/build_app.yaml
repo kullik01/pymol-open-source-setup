@@ -280,14 +280,14 @@ jobs:
 
       - name: Ad-hoc sign app bundle
         # Prevents Gatekeeper "damaged app" errors
-        run: codesign --force --deep --sign - "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app"
+        run: codesign --force --deep --sign - "dist/PyMOL-Open-Source.app"
 
       - name: Smoke test
         timeout-minutes: 5
         run: |
           ./automator.sh test
-          tests/run_smoke_test.sh --gui "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app/Contents/MacOS/PyMOL"
-          codesign --verify --deep "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app"
+          tests/run_smoke_test.sh --gui "dist/PyMOL-Open-Source.app/Contents/MacOS/PyMOL"
+          codesign --verify --deep "dist/PyMOL-Open-Source.app"
 
       - name: Install create-dmg
         env:
@@ -316,7 +316,7 @@ jobs:
           ls -la "$MOUNT_DIR"
           test -L "$MOUNT_DIR/Applications"
           test -f "$MOUNT_DIR/.background/dmg_background.svg"
-          APP="$MOUNT_DIR/PyMOL-Open-Source-${PROJECT_VERSION}.app"
+          APP="$MOUNT_DIR/PyMOL-Open-Source.app"
           codesign --verify --deep "$APP"
           plutil -lint "$APP/Contents/Info.plist"
           test "$(plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source"

@@ -291,7 +291,7 @@ jobs:
           plutil -lint "$APP/Contents/Info.plist"
           test "$(plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source"
           # File types (.pdb, .cif, .pse) that open with PyMOL in Finder
-          test "$(plutil -extract CFBundleDocumentTypes.1.LSItemContentTypes.0 raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source.pse"
+          test "$(plutil -extract UTExportedTypeDeclarations.0.UTTypeIdentifier raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source.pse"
           # PyMOL is built for this runner's architecture (build_dmg.sh checks that Qt and numpy match it)
           test "$(lipo -archs "$APP"/Contents/Resources/lib/pymol/_cmd.*.so)" = "${{ matrix.arch }}"
           tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL"

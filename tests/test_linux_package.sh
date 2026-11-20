@@ -29,13 +29,13 @@ case " ${ID} ${ID_LIKE:-} " in
   *" debian "*|*" ubuntu "*)
     export DEBIAN_FRONTEND=noninteractive
     retry apt-get update -qq
-    retry apt-get install -y -qq "$PACKAGE" xvfb libgl1-mesa-dri > /dev/null
+    retry apt-get install -y -qq "$PACKAGE" xvfb libgl1-mesa-dri shared-mime-info > /dev/null
     ;;
   *" fedora "*|*" rhel "*)
-    retry dnf install -y -q "$PACKAGE" xorg-x11-server-Xvfb mesa-dri-drivers
+    retry dnf install -y -q "$PACKAGE" xorg-x11-server-Xvfb mesa-dri-drivers shared-mime-info
     ;;
   *" suse "*|*" opensuse "*)
-    retry zypper --non-interactive --quiet install --allow-unsigned-rpm "$PACKAGE" xorg-x11-server-Xvfb Mesa-dri
+    retry zypper --non-interactive --quiet install --allow-unsigned-rpm "$PACKAGE" xorg-x11-server-Xvfb Mesa-dri shared-mime-info
     ;;
   *)
     echo "Unsupported distribution: ${ID}" >&2
@@ -49,14 +49,11 @@ for FILE in /usr/share/applications/open-source-pymol.desktop /usr/share/icons/h
     /usr/share/mime/packages/open-source-pymol.xml; do
   test -s "$FILE" || { echo "Missing: $FILE" >&2; exit 1; }
 done
-# The package manager updates the MIME database for the new file types (.cif, .pse),
-# if the shared MIME database is installed
-if [ -f /usr/share/mime/globs2 ]; then
-  for MIME_TYPE in chemical/x-cif application/x-pymol-session; do
-    grep -q "$MIME_TYPE" /usr/share/mime/globs2 || { echo "MIME database not updated: $MIME_TYPE" >&2; exit 1; }
-  done
-  echo "MIME types registered"
-fi
+# The package manager's trigger updates the MIME database for the new file types (.cif, .pse)
+for MIME_TYPE in chemical/x-cif application/x-pymol-session; do
+  grep -qF "$MIME_TYPE" /usr/share/mime/globs2 || { echo "MIME database not updated: $MIME_TYPE" >&2; exit 1; }
+done
+echo "MIME types registered"
 
 EXECUTABLE=/usr/bin/Open-Source-PyMOL
 timeout 300 "$TESTS_DIR/run_smoke_test.sh" "$EXECUTABLE"

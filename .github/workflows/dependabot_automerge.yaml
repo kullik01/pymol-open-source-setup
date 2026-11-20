@@ -1,0 +1,30 @@
+name: Dependabot auto-merge
+
+# Turns on auto-merge for Dependabot's minor and patch updates: GitHub then merges them
+# (squash) as soon as the 'release' check required by the ruleset of 'main' is green.
+# Major updates and the PyMOL wheel (the files in edited/ must be ported first) stay manual.
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    # Only Dependabot's own pull requests, and only while Dependabot made the last push
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read the update
+        id: metadata
+        uses: dependabot/fetch-metadata@v3
+
+      - name: Enable auto-merge
+        if: >-
+          (steps.metadata.outputs.update-type == 'version-update:semver-minor'
+          || steps.metadata.outputs.update-type == 'version-update:semver-patch')
+          && !contains(steps.metadata.outputs.dependency-names, 'pymol-open-source-whl')
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr merge --auto --squash "$PR_URL"

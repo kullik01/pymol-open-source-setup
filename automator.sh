@@ -14,7 +14,7 @@
 #-*
 #Z* -------------------------------------------------------------------
 cd "$(dirname "$0")" || exit 1
-# "setup" creates a fresh .venv with Python 3.13 and installs requirements.txt
+# "setup" creates a fresh .venv with the Python of .python-version and installs requirements.txt
 if [ "${1:-}" = "setup" ]; then
     if ! command -v uv >/dev/null; then
         echo "uv is missing, see https://docs.astral.sh/uv/getting-started/installation/" >&2
@@ -27,8 +27,8 @@ if [ "${1:-}" = "setup" ]; then
         export MACOSX_DEPLOYMENT_TARGET=12.0
         PLATFORM_ARGS=(--python-platform "$(uname -m | sed 's/arm64/aarch64/')-apple-darwin")
     fi
-    uv venv --clear --python 3.13 .venv &&
-        exec uv pip install --compile-bytecode "${PLATFORM_ARGS[@]}" --python .venv -r requirements.txt
+    uv venv --clear .venv || exit 1
+    exec uv pip install --compile-bytecode "${PLATFORM_ARGS[@]}" --python .venv -r requirements.txt
 fi
 if [ ! -x ./.venv/bin/python ]; then
     echo "The virtual environment does not exist yet. Create it with: ./automator.sh setup" >&2

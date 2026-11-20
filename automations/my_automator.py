@@ -15,7 +15,6 @@
 #Z* -------------------------------------------------------------------
 """
 import build_exe
-import build_inno_setup
 import tasks
 
 
@@ -29,12 +28,8 @@ AUTOMATION_TREE = {
         "help": "Creates a frozen Python application",
         "func": build_exe.build
       },
-      "inno_setup": {
-        "help": "Creates the Inno Setup installer for Windows (run 'build app' first)",
-        "func": build_inno_setup.build
-      },
       "packages": {
-        "help": "Creates the installer/packages of this platform (run 'build app' first)",
+        "help": "Creates the installer/packages of this platform (run 'build app' first; Windows: Inno Setup)",
         "func": tasks.build_packages
       },
       "all": {

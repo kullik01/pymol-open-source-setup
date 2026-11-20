@@ -20,7 +20,7 @@ if [ ! -d "$APP_PATH" ]; then
 fi
 
 # The DMG name tells which Macs the app runs on, based on the built app itself:
-# PyMOL's core module has a single architecture; Qt (universal) and numpy must contain it
+# PyMOL's core module has a single architecture; Qt and numpy must be built for it
 LIB_DIR="$APP_PATH/Contents/Resources/lib"
 CMD_ARCHS="$(lipo -archs "$LIB_DIR"/pymol/_cmd.*.so)"
 case "$CMD_ARCHS" in

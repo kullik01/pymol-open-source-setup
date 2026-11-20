@@ -17,7 +17,6 @@
 import pathlib
 import subprocess
 import sys
-import sysconfig
 
 import build_exe
 import build_inno_setup
@@ -26,14 +25,15 @@ import utils
 
 
 SMOKE_TEST_FILEPATH = const.PROJECT_ROOT_DIR / "tests" / "smoke_test.py"
+# Like the CI's timeout-minutes, so a hanging application does not block forever
+SMOKE_TEST_TIMEOUT_SECONDS = 300
 
 
 def frozen_executable() -> pathlib.Path:
   """The executable of the frozen application in dist/ (see build_exe.build)."""
   if const.MACOS:
-    return const.DIST_DIR / f"PyMOL-Open-Source-{const.PROJECT_VERSION}.app" / "Contents" / "MacOS" / "PyMOL"
-  tmp_name = "Open-Source-PyMOL.exe" if const.WIN32 else "Open-Source-PyMOL"
-  return const.DIST_DIR / f"exe.{sysconfig.get_platform()}-{const.PYTHON_VERSION}" / tmp_name
+    return const.MACOS_APP_DIR / "Contents" / "MacOS" / "PyMOL"
+  return const.FROZEN_APP_DIR / ("Open-Source-PyMOL.exe" if const.WIN32 else "Open-Source-PyMOL")
 
 
 def build_packages() -> None:
@@ -57,10 +57,18 @@ def _run_smoke_test(a_gui: bool) -> None:
   tmp_executable = frozen_executable()
   if not tmp_executable.exists():
     sys.exit(f"{tmp_executable} does not exist. Run 'build app' first.")
-  tmp_result = subprocess.run(
-    [str(tmp_executable), "-q" if a_gui else "-cq", str(SMOKE_TEST_FILEPATH)],
-    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors="replace", check=False,
-  )
+  try:
+    tmp_result = subprocess.run(
+      [str(tmp_executable), "-q" if a_gui else "-cq", str(SMOKE_TEST_FILEPATH)],
+      stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors="replace", check=False,
+      timeout=SMOKE_TEST_TIMEOUT_SECONDS,
+    )
+  except subprocess.TimeoutExpired as tmp_error:
+    tmp_output = tmp_error.output or b""
+    if isinstance(tmp_output, bytes):
+      tmp_output = tmp_output.decode(errors="replace")
+    print(tmp_output, end="")
+    sys.exit(f"Smoke test failed (no result after {SMOKE_TEST_TIMEOUT_SECONDS} seconds)")
   print(tmp_result.stdout, end="")
   # Checking the output as well ensures the test script was really executed
   if tmp_result.returncode != 0 or "SMOKE TEST OK" not in tmp_result.stdout:

@@ -26,8 +26,10 @@ OpenSSL 3 (Apache License 2.0)
     See Apache-2.0.txt. Bundled by cx_Freeze/freeze-core (Linux, macOS) and by
     Python (Windows). Source code: https://www.openssl.org/source/
 
-Mesa llvmpipe, opengl32sw.dll (Windows only; MIT license)
-    Qt's software OpenGL renderer, from the PySide6 package.
+Mesa llvmpipe, opengl32sw.dll (Windows only; MIT license, with LLVM under the
+Apache License 2.0 with LLVM Exceptions)
+    Qt's software OpenGL renderer, from the PySide6 package. See Mesa-MIT.txt
+    and LLVM-LICENSE.txt.
     Source code: https://download.qt.io/development_releases/prebuilt/llvmpipe/windows/
 
 Microsoft Visual C++ runtime (Windows only)

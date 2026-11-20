@@ -14,7 +14,7 @@
 #-*
 #Z* -------------------------------------------------------------------
 """
-import pathlib
+import os
 import shutil
 import sys
 import sysconfig
@@ -23,12 +23,6 @@ import const
 import utils
 
 
-# Default locations of the 64-bit and 32-bit editions of Inno Setup 7. They come before the PATH,
-# which may contain an older Inno Setup (e.g. on the GitHub runners).
-ISCC_FILEPATHS = [
-  pathlib.Path(r"C:\Program Files\Inno Setup 7\ISCC.exe"),
-  pathlib.Path(r"C:\Program Files (x86)\Inno Setup 7\ISCC.exe"),
-]
 INNO_SETUP_SCRIPT_FILEPATH = const.PROJECT_ROOT_DIR / "os_specific" / "windows" / "inno_setup" / "setup.iss"
 
 
@@ -39,17 +33,24 @@ def build() -> None:
   if sysconfig.get_platform() != "win-amd64":
     sys.exit("The Inno Setup installer requires a 64-bit (x64) Python interpreter.")
 
-  tmp_frozen_app_dir = const.DIST_DIR / f"exe.{sysconfig.get_platform()}-{const.PYTHON_VERSION}"
-  if not tmp_frozen_app_dir.exists():
-    sys.exit(f"{tmp_frozen_app_dir} does not exist. Run 'build app' first.")
+  if not const.FROZEN_APP_DIR.exists():
+    sys.exit(f"{const.FROZEN_APP_DIR} does not exist. Run 'build app' first.")
 
-  tmp_iscc_filepath = next((tmp_path for tmp_path in ISCC_FILEPATHS if tmp_path.exists()), None) or shutil.which("ISCC")
+  # Inno Setup 7's install folders (64-bit and 32-bit edition for all users, per-user install)
+  # come before the PATH, which may contain an older Inno Setup (e.g. on the GitHub runners)
+  tmp_search_path = os.pathsep.join([
+    r"C:\Program Files\Inno Setup 7",
+    r"C:\Program Files (x86)\Inno Setup 7",
+    os.path.join(os.environ["LOCALAPPDATA"], "Programs", "Inno Setup 7"),
+    os.environ.get("PATH", ""),
+  ])
+  tmp_iscc_filepath = shutil.which("ISCC", path=tmp_search_path)
   if tmp_iscc_filepath is None:
     sys.exit("Inno Setup 7 compiler (ISCC.exe) not found. Install Inno Setup 7 or add it to the PATH.")
 
   utils.run([
     tmp_iscc_filepath,
     f"/DMyAppVersion={const.PROJECT_VERSION}",
-    f"/DAppSourceDir={tmp_frozen_app_dir}",
+    f"/DAppSourceDir={const.FROZEN_APP_DIR}",
     INNO_SETUP_SCRIPT_FILEPATH,
   ])

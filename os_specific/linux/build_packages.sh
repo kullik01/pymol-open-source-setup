@@ -31,7 +31,9 @@ sed "s|/opt/open-source-pymol|${INSTALL_DIR}|g" \
   os_specific/linux/open-source-pymol.desktop > "$STAGING_DIR/open-source-pymol.desktop"
 ln -s "${INSTALL_DIR}/Open-Source-PyMOL" "$STAGING_DIR/Open-Source-PyMOL"
 METAINFO="io.github.kullik01.pymol-open-source.metainfo.xml"
-sed -e "s|@VERSION@|${VERSION}|" -e "s|@DATE@|$(date -u +%F)|" \
+# Release date: the date of the built commit, so rebuilds of a version keep it
+RELEASE_DATE="$(git log -1 --format=%cs 2> /dev/null || date -u +%F)"
+sed -e "s|@VERSION@|${VERSION}|" -e "s|@DATE@|${RELEASE_DATE}|" \
   "os_specific/linux/${METAINFO}" > "$STAGING_DIR/${METAINFO}"
 
 # System libraries that are not bundled: OpenGL, GLib, D-Bus, fonts and the
@@ -62,8 +64,9 @@ RPM_SONAMES=("${RPM_SONAMES[@]/%/()(64bit)}")
 FPM_ARGS=(
   -s dir
   --version "$VERSION"
-  # This project's code (BSD-3-Clause), the bundled Qt/PySide6 (LGPL-3.0) and PyMOL (its own license)
-  --license "BSD-3-Clause AND LGPL-3.0-only AND LicenseRef-PyMOL"
+  # This project's code (BSD-3-Clause), the bundled Qt/PySide6 (LGPL-3.0) and PyMOL (its own
+  # license, closest SPDX ID: HPND)
+  --license "BSD-3-Clause AND LGPL-3.0-only AND HPND"
   --maintainer "Hannah Kullik <hannah.kullik@studmail.w-hs.de>, Martin Urban <martin.urban@studmail.w-hs.de>"
   --vendor "Hannah Kullik, Martin Urban"
   --url "https://kullik01.github.io/pymol-open-source-setup"
@@ -75,7 +78,7 @@ PACKAGE_CONTENTS=(
   "${FROZEN_APP_DIR}/=${INSTALL_DIR}/"
   "$STAGING_DIR/Open-Source-PyMOL=/usr/bin/Open-Source-PyMOL"
   "$STAGING_DIR/open-source-pymol.desktop=/usr/share/applications/open-source-pymol.desktop"
-  "os_specific/linux/logo.png=/usr/share/pixmaps/open-source-pymol.png"
+  "os_specific/linux/open-source-pymol-256.png=/usr/share/icons/hicolor/256x256/apps/open-source-pymol.png"
   "$STAGING_DIR/${METAINFO}=/usr/share/metainfo/${METAINFO}"
   "os_specific/linux/open-source-pymol-mime.xml=/usr/share/mime/packages/open-source-pymol.xml"
 )

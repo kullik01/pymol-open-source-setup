@@ -11,8 +11,15 @@ COUNT=0
 while IFS= read -r -d '' FILE; do
   file -b "$FILE" | grep -q "Mach-O" || continue
   COUNT=$((COUNT + 1))
-  # Minimum macOS of the binary (load command LC_BUILD_VERSION); older binaries have none
-  MINOS="$(otool -l "$FILE" | awk '/cmd LC_BUILD_VERSION/ { found = 1 } found && $1 == "minos" { print $2; exit }')"
+  # Minimum macOS of the binary: "minos" of LC_BUILD_VERSION, or "version" of
+  # LC_VERSION_MIN_MACOSX in older binaries. awk reads all of otool's output
+  # (no early exit), so otool never gets SIGPIPE, which pipefail would turn
+  # into a failed assignment and set -e into a silent abort.
+  MINOS="$(otool -l "$FILE" | awk '
+    /cmd LC_BUILD_VERSION/ { want = "minos" }
+    /cmd LC_VERSION_MIN_MACOSX/ { want = "version" }
+    want != "" && $1 == want && result == "" { result = $2 }
+    END { print result }')"
   [ -n "$MINOS" ] || continue
   if awk -v a="$MINOS" -v b="$MIN_MACOS" 'BEGIN { split(a, x, "."); split(b, y, "."); exit !(x[1] > y[1] || (x[1] == y[1] && x[2] > y[2])) }'; then
     echo "Needs macOS ${MINOS}: ${FILE#"$APP"/}" >&2

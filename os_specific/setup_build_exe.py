@@ -19,7 +19,8 @@ from cx_Freeze import setup
 
 
 PROJECT_ROOT_DIR = pathlib.Path(__file__).resolve().parent.parent
-PYMOL_PACKAGE_DIR = pathlib.Path(sysconfig.get_path("platlib"), "pymol")
+SITE_PACKAGES_DIR = pathlib.Path(sysconfig.get_path("platlib"))
+PYMOL_PACKAGE_DIR = SITE_PACKAGES_DIR / "pymol"
 # e.g. ".cpython-313-x86_64-linux-gnu.so", ".cpython-313-darwin.so", ".cp313-win_amd64.pyd"
 CMD_MODULE_FILENAME = f"_cmd{sysconfig.get_config_var('EXT_SUFFIX')}"
 
@@ -34,12 +35,14 @@ RUNTIME_DISTRIBUTIONS = (
   "Pmw", "msgpack", "simplejson", "rules",
   "freeze-core",  # the executable's startup code and the native libraries of cx_Freeze
 )
+# Qt for Python: LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only (texts not in the wheels)
+QT_FOR_PYTHON_LICENSES = [LICENSES_DIR / "LGPL-3.0.txt", LICENSES_DIR / "GPL-3.0.txt"]
 # License texts of distributions whose metadata contains none
 EXTRA_LICENSE_FILES = {
-  # Qt for Python: LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only (texts not in the wheels)
-  "PySide6-Essentials": [LICENSES_DIR / "LGPL-3.0.txt", LICENSES_DIR / "GPL-3.0.txt"],
-  "shiboken6": [LICENSES_DIR / "LGPL-3.0.txt", LICENSES_DIR / "GPL-3.0.txt"],
-  "Pmw": ["Pmw/Pmw_2_1_1/doc/copyright.html"],  # relative to the installed package
+  "PySide6-Essentials": QT_FOR_PYTHON_LICENSES,
+  "shiboken6": QT_FOR_PYTHON_LICENSES,
+  # Relative to the installed package; a pattern, so a Pmw update keeps working
+  "Pmw": ["Pmw/Pmw_*/doc/copyright.html"],
 }
 LICENSE_FILENAME_PATTERN = re.compile(r"^(LICEN[CS]E|COPYING|NOTICE|AUTHORS)", re.IGNORECASE)
 
@@ -48,8 +51,8 @@ def license_name(a_distribution: importlib.metadata.Distribution) -> str:
   """Returns a short license name from the metadata of a distribution."""
   metadata = a_distribution.metadata
   classifiers = [c.split(" :: ")[-1] for c in metadata.get_all("Classifier") or [] if c.startswith("License ::")]
-  name = metadata.get("License-Expression") or ", ".join(classifiers) or metadata.get("License") or "see license files"
-  return name.strip().splitlines()[0][:80]
+  name = (metadata.get("License-Expression") or ", ".join(classifiers) or metadata.get("License") or "").strip()
+  return name.splitlines()[0][:80] if name else "see license files"
 
 
 def collect_license_files(an_index_dir: pathlib.Path) -> list:
@@ -67,6 +70,8 @@ def collect_license_files(an_index_dir: pathlib.Path) -> list:
     (LICENSES_DIR / "GPL-3.0.txt", "licenses/GPL-3.0.txt"),
     (LICENSES_DIR / "LGPL-3.0.txt", "licenses/LGPL-3.0.txt"),
     (LICENSES_DIR / "Apache-2.0.txt", "licenses/Apache-2.0.txt"),
+    (LICENSES_DIR / "Mesa-MIT.txt", "licenses/Mesa-MIT.txt"),
+    (LICENSES_DIR / "LLVM-LICENSE.txt", "licenses/LLVM-LICENSE.txt"),
     (PROJECT_ROOT_DIR / "LICENSE", "licenses/PyMOL-Open-Source-setup/LICENSE"),
     (python_license, "licenses/Python/LICENSE.txt"),
   ]
@@ -84,7 +89,10 @@ def collect_license_files(an_index_dir: pathlib.Path) -> list:
       if ".dist-info" in str(f) and LICENSE_FILENAME_PATTERN.match(f.name)
     ]
     for extra in EXTRA_LICENSE_FILES.get(name, []):
-      sources.append(extra if pathlib.Path(extra).is_absolute() else pathlib.Path(distribution.locate_file(extra)))
+      if pathlib.Path(extra).is_absolute():
+        sources.append(extra)
+      else:
+        sources.extend(pathlib.Path(distribution.locate_file("")).glob(extra))
     if not sources:
       sys.exit(f"No license text found for the bundled package {dist_name}; add one to EXTRA_LICENSE_FILES.")
     files += [(source, f"licenses/{dist_name}/{source.name}") for source in sources]
@@ -122,8 +130,12 @@ options = {
       "pymol.parser",
       "uuid",
     ],
-    # PyMOL would prefer PyQt5 if it were installed somewhere
+    # pymol.Qt also imports these bindings; keep cx_Freeze from bundling them if they are in the venv
     "excludes": ["PyQt5", "PySide2", "PyQt6"],
+    # Qt plugins a desktop PyMOL never loads, which pull in about 18 MB of Qml/Quick and
+    # Wayland compositor libraries: the virtual keyboard, the Wayland compositor (server)
+    # side and the EGLFS plugins for embedded devices
+    "bin_excludes": ["*qtvirtualkeyboardplugin*", "wayland-graphics-integration-server/*", "egldeviceintegrations/*"],
     # Files that are loaded dynamically and therefore not found by cx_Freeze
     "include_files": [
       (PYMOL_PACKAGE_DIR / CMD_MODULE_FILENAME, f"lib/pymol/{CMD_MODULE_FILENAME}"),
@@ -137,14 +149,14 @@ if sys.platform == "win32":
   # Bundles the Microsoft C++ runtime (vcruntime140.dll, msvcp140.dll, ...), which
   # cx_Freeze leaves out by default, so the app also starts on PCs without the
   # VC++ Redistributable. cx_Freeze downloads the latest runtime of Visual Studio
-  # 2022 from Microsoft (cached in %APPDATA%\cx_Freeze\vc_redist).
+  # 2022 from Microsoft (cached in %APPDATA%\cxfreeze\vc_redist).
   options["build_exe"]["include_msvcr"] = True
   options["build_exe"]["include_msvcr_version"] = "17"
   # Qt's software OpenGL (Mesa llvmpipe) for PCs, VMs and remote desktops without a usable
   # OpenGL driver (cx_Freeze copies it only for QtWebEngine). PyMOL itself is linked against
   # opengl32.dll, so users copy it to opengl32.dll next to the executable (see the website).
   options["build_exe"]["include_files"].append(
-    (pathlib.Path(sysconfig.get_path("platlib"), "PySide6", "opengl32sw.dll"), "opengl32sw.dll")
+    (SITE_PACKAGES_DIR / "PySide6" / "opengl32sw.dll", "opengl32sw.dll")
   )
 
 if sys.platform == "darwin":

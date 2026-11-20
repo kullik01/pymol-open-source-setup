@@ -20,7 +20,7 @@ if [ ! -d "$APP_PATH" ]; then
 fi
 
 # The DMG name tells which Macs the app runs on, based on the built app itself:
-# PyMOL's core module has a single architecture; Qt (universal) and numpy must contain it
+# PyMOL's core module has a single architecture; Qt and numpy must be built for it
 LIB_DIR="$APP_PATH/Contents/Resources/lib"
 CMD_ARCHS="$(lipo -archs "$LIB_DIR"/pymol/_cmd.*.so)"
 case "$CMD_ARCHS" in
@@ -37,6 +37,8 @@ for MODULE in "$LIB_DIR"/PySide6/QtCore.abi3.so "$LIB_DIR"/numpy/_core/_multiarr
     exit 1
   fi
 done
+# No binary may need a newer macOS than the app's minimum (e.g. a numpy wheel for macOS 14)
+tests/check_macos_min_version.sh "$APP_PATH"
 DMG_NAME="${APP_NAME}_v${VERSION}_macOS_${ARCH_LABEL}"
 CREATE_DMG="${CREATE_DMG:-create-dmg}"
 if ! command -v "$CREATE_DMG" > /dev/null; then

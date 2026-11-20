@@ -44,7 +44,7 @@ case " ${ID} ${ID_LIKE:-} " in
 esac
 
 # Desktop integration: menu entry, icon and software center metadata
-for FILE in /usr/share/applications/open-source-pymol.desktop /usr/share/pixmaps/open-source-pymol.png \
+for FILE in /usr/share/applications/open-source-pymol.desktop /usr/share/icons/hicolor/256x256/apps/open-source-pymol.png \
     /usr/share/metainfo/io.github.kullik01.pymol-open-source.metainfo.xml \
     /usr/share/mime/packages/open-source-pymol.xml; do
   test -s "$FILE" || { echo "Missing: $FILE" >&2; exit 1; }

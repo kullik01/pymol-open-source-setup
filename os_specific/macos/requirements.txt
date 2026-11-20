@@ -8,7 +8,7 @@ mac-alias==2.2.2
 msgpack-python==0.5.6
 msgpack==1.1.0
 numpy==1.26.4
-packaging==24.2
+packaging==26.3
 Pmw==2.1.1
 pymol-open-source-whl==3.1.0.4
 PyQt5-Qt5==5.15.16

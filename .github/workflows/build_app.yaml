@@ -102,7 +102,7 @@ jobs:
           # SHA-256 published by GitHub for the release file
           $hash = (Get-FileHash "$env:RUNNER_TEMP\innosetup.exe" -Algorithm SHA256).Hash
           if ($hash -ne '8a5a6711c3766a6e5fb74f280ba0e3551e719ce94538d901fdbd1f8f9920b3f0') { throw "Unexpected SHA-256 of the Inno Setup installer: $hash" }
-          Start-Process -FilePath "$env:RUNNER_TEMP\innosetup.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait
+          Start-Process -FilePath "$env:RUNNER_TEMP\innosetup.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/ALLUSERS' -Wait
 
       - name: Cache the Microsoft C++ runtime
         # cx_Freeze downloads it from Microsoft once; the cache keeps builds reproducible.

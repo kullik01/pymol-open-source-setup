@@ -98,6 +98,27 @@ uvx pre-commit run --all-files    # once
 uvx pre-commit install            # before every commit from now on
 ```
 
+### CI and pull requests
+- Changes reach `main` only through pull requests; the ruleset of `main` requires the green
+  `release` check, which fails if any other CI job failed. "Enable auto-merge" on a pull
+  request merges it (squash) as soon as CI is green, and merged branches are deleted.
+- A pull request that only changes text files (README, `AGENTS.md`, Dependabot and
+  release-notes settings) skips the app builds (about 1 instead of 8–10 minutes).
+- macOS Intel is the slowest job. GitHub supports its Intel runners (`macos-15-intel`) only
+  until about August–autumn 2027; then the Intel DMG needs a decision (for example built on
+  Apple Silicon, or dropped).
+
+### Dependency updates (Dependabot)
+Dependabot opens weekly, grouped pull requests for the Python packages, the GitHub Actions
+and the pre-commit hooks, with versions that are at least 14 days old. Minor and patch
+updates merge themselves once CI is green; major updates wait for a review. Deliberate limits:
+- **PyMOL wheel** (`pymol-open-source-whl`): always its own pull request without auto-merge,
+  because the files in `edited/` must be ported to the new version first (the build stops
+  until `EDITED_FOR_PYMOL_WHL_VERSION` in `automations/build_exe.py` matches).
+- **PySide6/shiboken6** stay at 6.9: 6.10 and newer need macOS 13 and glibc 2.34, which
+  would drop macOS 12 and RHEL/AlmaLinux 8.
+- **biopython** stays at 1.86: newer versions have no Python 3.13 wheels for Intel Macs.
+
 ## Releasing a new version
 The version in [pyproject.toml](pyproject.toml) is the only place to change. The build,
 the file names and the website (version, file names and download links) all use it.
@@ -112,6 +133,15 @@ the file names and the website (version, file names and download links) all use 
    links do not match the built files.
 4. Check the draft on the [releases page](https://github.com/kullik01/pymol-open-source-setup/releases)
    and publish it. Publishing the release also publishes the website.
+
+Before publishing, test once by hand what CI cannot (with the files of the draft release):
+- [ ] **Windows:** install, start PyMOL from the Start menu, double-click a `.pse` file,
+  uninstall (shortcuts and file types are gone).
+- [ ] **macOS:** open the DMG, drag the app to Applications, allow it once in the Privacy &
+  Security settings, start it, double-click a `.pse` file in Finder while PyMOL is closed.
+- [ ] **Linux:** install the `.deb` or `.rpm`, start PyMOL from the application menu,
+  double-click a `.pse` file in the file manager.
+- [ ] **Everywhere:** `fetch 1ubq` loads a structure (internet access).
 
 The website is only published for published releases. To publish website changes
 without a release, run the "Build Docs" action manually (Actions > Build Docs > Run workflow)

@@ -94,7 +94,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq appstream desktop-file-utils > /dev/null
-          desktop-file-validate os_specific/linux/open-source-pymol.desktop
+          desktop-file-validate os_specific/linux/pymol-open-source.desktop
           METAINFO="io.github.kullik01.pymol-open-source.metainfo.xml"
           sed -e "s|@VERSION@|1.0|" -e "s|@DATE@|2026-01-01|" "os_specific/linux/${METAINFO}" > "${RUNNER_TEMP}/${METAINFO}"
           appstreamcli validate --pedantic --no-net "${RUNNER_TEMP}/${METAINFO}"
@@ -172,11 +172,26 @@ jobs:
           GUI_TEST_DIR="$(cygpath -u "$RUNNER_TEMP")/gui-test"
           cp -r "dist/exe.win-amd64-${PYTHON_VERSION}" "$GUI_TEST_DIR"
           cp "$GUI_TEST_DIR/opengl32sw.dll" "$GUI_TEST_DIR/opengl32.dll"
-          tests/run_smoke_test.sh --gui "$GUI_TEST_DIR/Open-Source-PyMOL.exe"
+          tests/run_smoke_test.sh --gui "$GUI_TEST_DIR/PyMOL-Open-Source.exe"
 
       - name: Build installer
         shell: cmd
         run: win_automator.bat build packages
+
+      - name: Install the latest published release (update test)
+        # The new installer below must replace it. On the runner it installs with
+        # administrator rights, like an old installation "for all users".
+        timeout-minutes: 15
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --pattern '*setup.exe' --dir "$env:RUNNER_TEMP\previous"
+          $setup = Get-ChildItem "$env:RUNNER_TEMP\previous\*setup.exe" | Select-Object -First 1
+          $process = Start-Process $setup.FullName -Wait -PassThru `
+            -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', "/LOG=$env:RUNNER_TEMP\previous.log"
+          if ($process.ExitCode -ne 0) { Get-Content "$env:RUNNER_TEMP\previous.log"; throw "Setup of $($setup.Name) failed: $($process.ExitCode)" }
+          Write-Output "Installed $($setup.Name)"
 
       - name: Install with the installer
         # Per-user install like on a user's PC (Git Bash would turn /VERYSILENT into a path)
@@ -187,16 +202,23 @@ jobs:
           $process = Start-Process $setup.FullName -Wait -PassThru `
             -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', "/LOG=$env:RUNNER_TEMP\install.log"
           if ($process.ExitCode -ne 0) { Get-Content "$env:RUNNER_TEMP\install.log"; throw "Setup failed: $($process.ExitCode)" }
-          $exe = Join-Path $env:APPDATA "PyMOL-Open-Source\bin\Open-Source-PyMOL.exe"
+          $exe = Join-Path $env:APPDATA "PyMOL-Open-Source\bin\PyMOL-Open-Source.exe"
           if (-not (Test-Path $exe)) { throw "Not installed: $exe" }
           foreach ($folder in [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs')) {
-            if (-not (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk'))) { throw "Shortcut missing in $folder" }
+            if (-not (Test-Path (Join-Path $folder 'PyMOL-Open-Source.lnk'))) { throw "Shortcut missing in $folder" }
           }
           foreach ($folder in [Environment]::GetFolderPath('CommonDesktopDirectory'), [Environment]::GetFolderPath('CommonPrograms'), [Environment]::GetFolderPath('CommonStartMenu')) {
-            if (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk')) { throw "Shortcut in the All Users folder $folder" }
+            if (Test-Path (Join-Path $folder 'PyMOL-Open-Source.lnk')) { throw "Shortcut in the All Users folder $folder" }
           }
           $version = (Get-ItemProperty $env:UNINSTALL_KEY).DisplayVersion
           if ($version -ne $env:PROJECT_VERSION) { throw "Uninstall entry has version '$version'" }
+          # Only the new version remains: no entry for all users, no old program or shortcuts
+          $allUsersKey = $env:UNINSTALL_KEY -replace '^HKCU:', 'HKLM:'
+          if (Test-Path $allUsersKey) { throw "The previous version is still installed for all users" }
+          if (Test-Path (Join-Path (Split-Path $exe) 'Open-Source-PyMOL.exe')) { throw "Old program file left" }
+          foreach ($folder in [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs'), [Environment]::GetFolderPath('CommonDesktopDirectory'), [Environment]::GetFolderPath('CommonPrograms')) {
+            if (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk')) { throw "Old shortcut left in $folder" }
+          }
           # File types: the open command starts the installed app
           $command = (Get-ItemProperty 'HKCU:\Software\Classes\OpenSourcePyMOL.File\shell\open\command').'(default)'
           if ($command -ne "`"$exe`" `"%1`"") { throw "Unexpected open command: $command" }
@@ -219,7 +241,7 @@ jobs:
           for ($i = 0; $i -lt 60 -and (Test-Path $app); $i++) { Start-Sleep -Seconds 2 }
           if (Test-Path $app) { throw "Not uninstalled: $app" }
           foreach ($folder in [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs')) {
-            if (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk')) { throw "Shortcut left in $folder" }
+            if (Test-Path (Join-Path $folder 'PyMOL-Open-Source.lnk')) { throw "Shortcut left in $folder" }
           }
           if (Test-Path $env:UNINSTALL_KEY) { throw "Uninstall entry left" }
           if (Test-Path 'HKCU:\Software\Classes\OpenSourcePyMOL.File') { throw "File type registration left" }
@@ -233,7 +255,7 @@ jobs:
         run: |
           PORTABLE_DIR="${RUNNER_TEMP}/portable"
           7z x -bso0 -bsp0 -o"${PORTABLE_DIR}" "os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_x64_portable.zip"
-          tests/run_smoke_test.sh "${PORTABLE_DIR}/Open-Source-PyMOL.exe"
+          tests/run_smoke_test.sh "${PORTABLE_DIR}/PyMOL-Open-Source.exe"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
@@ -286,7 +308,7 @@ jobs:
         timeout-minutes: 5
         run: |
           ./automator.sh test
-          tests/run_smoke_test.sh --gui "dist/PyMOL-Open-Source.app/Contents/MacOS/PyMOL"
+          tests/run_smoke_test.sh --gui "dist/PyMOL-Open-Source.app/Contents/MacOS/PyMOL-Open-Source"
           codesign --verify --deep "dist/PyMOL-Open-Source.app"
 
       - name: Install create-dmg
@@ -324,7 +346,7 @@ jobs:
           test "$(plutil -extract UTExportedTypeDeclarations.0.UTTypeIdentifier raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source.pse"
           # PyMOL is built for this runner's architecture (build_dmg.sh checks that Qt and numpy match it)
           test "$(lipo -archs "$APP"/Contents/Resources/lib/pymol/_cmd.*.so)" = "${{ matrix.arch }}"
-          tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL"
+          tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL-Open-Source"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
@@ -382,6 +404,19 @@ jobs:
           # The packages are already compressed
           compression-level: 0
 
+      - name: Download the latest published release (update test)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download --pattern '*.deb' --pattern '*.rpm' --dir previous-release
+
+      - name: Upload the latest published release
+        # Not named PyMOL-Open-Source-*, so it never ends up in a new release
+        uses: actions/upload-artifact@v7
+        with:
+          name: previous-linux-packages
+          path: previous-release/*
+          compression-level: 0
+
   # Installs the packages on clean distributions (the package manager has to
   # resolve all declared dependencies) and runs the headless and GUI smoke tests.
   test-gnu-linux-packages:
@@ -418,10 +453,16 @@ jobs:
           name: PyMOL-Open-Source-GNU-Linux-x86_64-Setup
           path: packages
 
-      - name: Install package and run smoke tests
+      - name: Download the latest published release
+        uses: actions/download-artifact@v8
+        with:
+          name: previous-linux-packages
+          path: previous
+
+      - name: Install package over the latest release and run smoke tests
         timeout-minutes: 15
         shell: bash
-        run: tests/test_linux_package.sh packages/*.${{ matrix.package }}
+        run: tests/test_linux_package.sh packages/*.${{ matrix.package }} previous/*.${{ matrix.package }}
   # --- end
 
   # ----- Website section

@@ -1,4 +1,4 @@
-site_name: Open-Source PyMOL
+site_name: PyMOL-Open-Source
 site_url: https://kullik01.github.io/pymol-open-source-setup/
 nav:
     - Home: index.md

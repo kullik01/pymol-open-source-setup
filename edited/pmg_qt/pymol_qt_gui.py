@@ -124,9 +124,13 @@ class PyMOLQtGUI(QtWidgets.QMainWindow, pymol._gui.PyMOLDesktopGUI):
         self.setting_callbacks = defaultdict(list)
 
         # "session_file" setting in window title
+        # BEGIN EDITED CODE SEGMENT
+        # :author Hannah Kullik
+        # The app's name on all platforms: PyMOL-Open-Source
         self.setting_callbacks[440].append(
-            lambda v: self.setWindowTitle("PyMOL (" + os.path.basename(v) + ")")
+            lambda v: self.setWindowTitle("PyMOL-Open-Source (" + os.path.basename(v) + ")")
         )
+        # END EDITED CODE SEGMENT
 
         # "External" Command Line and Loggin Widget
         self._setup_history()
@@ -1254,16 +1258,20 @@ def execapp():
 
     # BEGIN EDITED CODE SEGMENT
     # :author Hannah Kullik
-    # Link the window to the installed open-source-pymol.desktop entry.
+    # Link the window to the installed pymol-open-source.desktop entry.
     # On native Wayland the compositor matches the window to the desktop
     # entry by this app id (taskbar icon and grouping). On X11 the icon comes
     # from setWindowIcon and StartupWMClass in the entry.
     if pymol.IS_LINUX and hasattr(app, 'setDesktopFileName'):
-        app.setDesktopFileName('open-source-pymol')
+        app.setDesktopFileName('pymol-open-source')
     # END EDITED CODE SEGMENT
 
     window = PyMOLQtGUI()
-    window.setWindowTitle("PyMOL")
+    # BEGIN EDITED CODE SEGMENT
+    # :author Hannah Kullik
+    # The app's name on all platforms: PyMOL-Open-Source
+    window.setWindowTitle("PyMOL-Open-Source")
+    # END EDITED CODE SEGMENT
 
     @commandoverloaddecorator
     def viewport(w=-1, h=-1, _self=None):
@@ -1351,4 +1359,54 @@ def execapp():
     if options.plugins:
         window.initializePlugins()
 
+    # BEGIN EDITED CODE SEGMENT
+    # :author Hannah Kullik
+    # macOS: versions up to 3.1.0.4+4 were installed as PyMOL-Open-Source-<version>.app,
+    # so this app (PyMOL-Open-Source.app) did not replace them in Applications. Offer once
+    # to move such older apps to the Trash; macOS may ask for permission to modify apps.
+    if sys.platform == 'darwin':
+        QtCore.QTimer.singleShot(1000, lambda: offer_to_remove_older_apps(window))
+    # END EDITED CODE SEGMENT
+
     app.exec()
+
+
+# BEGIN EDITED CODE SEGMENT
+# :author Hannah Kullik
+def offer_to_remove_older_apps(window):
+    '''
+    Offers once to move older PyMOL-Open-Source-<version>.app bundles to the Trash
+    (macOS), so only the current app remains in Applications.
+    '''
+    import glob
+    settings = QtCore.QSettings('PyMOL-Open-Source', 'PyMOL-Open-Source')
+    if settings.value('older_apps_offered', False, type=bool):
+        return
+    current_app = os.path.realpath(os.path.join(os.path.dirname(sys.executable), '..', '..'))
+    older_apps = [
+        path for path in sorted(
+            glob.glob('/Applications/PyMOL-Open-Source-*.app') +
+            glob.glob(os.path.expanduser('~/Applications/PyMOL-Open-Source-*.app')))
+        if os.path.realpath(path) != current_app
+    ]
+    if not older_apps:
+        return
+    settings.setValue('older_apps_offered', True)
+    names = '\n'.join(os.path.basename(path) for path in older_apps)
+    answer = QtWidgets.QMessageBox.question(
+        window, 'Older version found',
+        'Older versions of PyMOL-Open-Source are still in Applications:\n\n'
+        + names + '\n\nMove them to the Trash?')
+    if answer != QtWidgets.QMessageBox.StandardButton.Yes:
+        return
+    not_moved = []
+    for path in older_apps:
+        result = QtCore.QFile.moveToTrash(path)
+        # PySide6 returns (success, path in the Trash), PyQt a bool
+        if not (result[0] if isinstance(result, tuple) else result):
+            not_moved.append(os.path.basename(path))
+    if not_moved:
+        QtWidgets.QMessageBox.information(
+            window, 'Older version found',
+            'Please move these apps to the Trash in Finder:\n\n' + '\n'.join(not_moved))
+# END EDITED CODE SEGMENT

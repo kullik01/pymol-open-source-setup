@@ -1,4 +1,4 @@
-# Download Open-Source PyMOL
+# Download PyMOL-Open-Source
 Current version: **{{ version }}** (the application shows the version of its PyMOL core, e.g. 3.2.0a)
 
 ## Windows

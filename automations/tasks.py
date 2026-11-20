@@ -30,10 +30,16 @@ SMOKE_TEST_TIMEOUT_SECONDS = 300
 
 
 def frozen_executable() -> pathlib.Path:
-  """The executable of the frozen application in dist/ (see build_exe.build)."""
+  """Finds the executable of the frozen application (see build_exe.build).
+
+  Returns:
+    The path of the executable in dist/.
+  """
   if const.MACOS:
-    return const.MACOS_APP_DIR / "Contents" / "MacOS" / "PyMOL"
-  return const.FROZEN_APP_DIR / ("Open-Source-PyMOL.exe" if const.WIN32 else "Open-Source-PyMOL")
+    return const.MACOS_APP_DIR / "Contents" / "MacOS" / "PyMOL-Open-Source"
+  if const.WIN32:
+    return const.FROZEN_APP_DIR / "PyMOL-Open-Source.exe"
+  return const.FROZEN_APP_DIR / "PyMOL-Open-Source"
 
 
 def build_packages() -> None:

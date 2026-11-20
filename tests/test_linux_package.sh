@@ -52,7 +52,9 @@ done
 # The package manager updates the MIME database for the new file types (.cif, .pse),
 # if the shared MIME database is installed
 if [ -f /usr/share/mime/globs2 ]; then
-  grep -q "application/x-pymol-session" /usr/share/mime/globs2 || { echo "MIME database not updated" >&2; exit 1; }
+  for MIME_TYPE in chemical/x-cif application/x-pymol-session; do
+    grep -q "$MIME_TYPE" /usr/share/mime/globs2 || { echo "MIME database not updated: $MIME_TYPE" >&2; exit 1; }
+  done
   echo "MIME types registered"
 fi
 

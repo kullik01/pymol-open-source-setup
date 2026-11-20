@@ -195,6 +195,7 @@ jobs:
           }
           if (Test-Path $env:UNINSTALL_KEY) { throw "Uninstall entry left" }
           if (Test-Path 'HKCU:\Software\Classes\OpenSourcePyMOL.File') { throw "File type registration left" }
+          if ((Get-ItemProperty 'HKCU:\Software\Classes\.pse' -ErrorAction SilentlyContinue).'(default)' -eq 'OpenSourcePyMOL.File') { throw ".pse association left" }
 
       - name: Create portable archive
         run: 7z a -tzip -bso0 -bsp0 "os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_x64_portable.zip" "./dist/exe.win-amd64-${PYTHON_VERSION}/*"

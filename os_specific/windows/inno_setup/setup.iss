@@ -64,14 +64,15 @@ Name: "{autoprograms}\Open-Source PyMOL"; Filename: "{app}\bin\Open-Source-PyMOL
 [Registry]
 ; File types (per-user, HKA = HKCU for this per-user installation). PyMOL is offered in "Open with"
 ; for .pdb and .cif files without taking them over from other programs, and it opens its own
-; session files (.pse) by double-click.
+; session files (.pse) by double-click. The uninstaller removes the keys that are left empty
+; (the uninstaller works through the entries in reverse order, so .pse comes before its subkey).
 Root: HKA; Subkey: "Software\Classes\OpenSourcePyMOL.File"; ValueType: string; ValueName: ""; ValueData: "PyMOL file"; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\OpenSourcePyMOL.File\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\assets\logo.ico"
 Root: HKA; Subkey: "Software\Classes\OpenSourcePyMOL.File\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\Open-Source-PyMOL.exe"" ""%1"""
-Root: HKA; Subkey: "Software\Classes\.pdb\OpenWithProgids"; ValueType: string; ValueName: "OpenSourcePyMOL.File"; ValueData: ""; Flags: uninsdeletevalue
-Root: HKA; Subkey: "Software\Classes\.cif\OpenWithProgids"; ValueType: string; ValueName: "OpenSourcePyMOL.File"; ValueData: ""; Flags: uninsdeletevalue
-Root: HKA; Subkey: "Software\Classes\.pse\OpenWithProgids"; ValueType: string; ValueName: "OpenSourcePyMOL.File"; ValueData: ""; Flags: uninsdeletevalue
-Root: HKA; Subkey: "Software\Classes\.pse"; ValueType: string; ValueName: ""; ValueData: "OpenSourcePyMOL.File"; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.pdb\OpenWithProgids"; ValueType: string; ValueName: "OpenSourcePyMOL.File"; ValueData: ""; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKA; Subkey: "Software\Classes\.cif\OpenWithProgids"; ValueType: string; ValueName: "OpenSourcePyMOL.File"; ValueData: ""; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKA; Subkey: "Software\Classes\.pse"; ValueType: string; ValueName: ""; ValueData: "OpenSourcePyMOL.File"; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKA; Subkey: "Software\Classes\.pse\OpenWithProgids"; ValueType: string; ValueName: "OpenSourcePyMOL.File"; ValueData: ""; Flags: uninsdeletevalue uninsdeletekeyifempty
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"

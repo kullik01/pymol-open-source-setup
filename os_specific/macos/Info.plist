@@ -56,7 +56,7 @@
 			<string>Protein Data Bank file</string>
 			<key>UTTypeConformsTo</key>
 			<array>
-				<string>public.data</string>
+				<string>public.plain-text</string>
 			</array>
 			<key>UTTypeTagSpecification</key>
 			<dict>
@@ -73,7 +73,7 @@
 			<string>Crystallographic Information File</string>
 			<key>UTTypeConformsTo</key>
 			<array>
-				<string>public.data</string>
+				<string>public.plain-text</string>
 			</array>
 			<key>UTTypeTagSpecification</key>
 			<dict>
@@ -83,6 +83,10 @@
 				</array>
 			</dict>
 		</dict>
+	</array>
+	<!-- PyMOL's own session format, which this app owns -->
+	<key>UTExportedTypeDeclarations</key>
+	<array>
 		<dict>
 			<key>UTTypeIdentifier</key>
 			<string>io.github.kullik01.pymol-open-source.pse</string>

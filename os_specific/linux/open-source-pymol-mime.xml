@@ -4,6 +4,7 @@
 <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
   <mime-type type="chemical/x-cif">
     <comment>Crystallographic Information File</comment>
+    <sub-class-of type="text/plain"/>
     <glob pattern="*.cif"/>
   </mime-type>
   <mime-type type="application/x-pymol-session">

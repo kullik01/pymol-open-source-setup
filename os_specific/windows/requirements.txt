@@ -2,7 +2,7 @@ biopython==1.78
 cabarchive==0.2.4
 cx_Freeze==8.0.0
 cx_Logging==3.2.1
-filelock==3.18.0
+filelock==4.2.11
 lief==0.16.4
 msgpack-python==0.5.6
 msgpack==1.1.0

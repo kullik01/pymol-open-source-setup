@@ -28,6 +28,10 @@ updates:
         # A new PyMOL wheel needs the files in edited/ ported first (see
         # automations/build_exe.py), so it gets a pull request of its own
         exclude-patterns: ["pymol-open-source-whl"]
+    ignore:
+      # Newer biopython has no Python 3.13 wheels for Intel Macs
+      - dependency-name: "biopython"
+        versions: [">1.86"]
 
   - package-ecosystem: "pre-commit"
     directory: "/"

@@ -1,11 +1,15 @@
-# Weekly pull requests for new versions of the GitHub Actions and the pinned
-# Python packages; minor and patch updates are grouped to keep the number low.
+# Weekly pull requests for new versions of the GitHub Actions, the pinned Python
+# packages and the pre-commit hooks; updates are grouped to keep the number low.
+# Only versions released at least 14 days ago are proposed (cooldown), so broken
+# releases are usually withdrawn or fixed before they reach a pull request.
 version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 14
     groups:
       github-actions:
         patterns: ["*"]
@@ -16,9 +20,21 @@ updates:
       - "/docs/website"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 14
     groups:
       python-minor-and-patch:
         update-types: ["minor", "patch"]
         # A new PyMOL wheel needs the files in edited/ ported first (see
         # automations/build_exe.py), so it gets a pull request of its own
         exclude-patterns: ["pymol-open-source-whl"]
+
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 14
+    groups:
+      pre-commit-hooks:
+        patterns: ["*"]

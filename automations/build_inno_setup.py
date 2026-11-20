@@ -34,9 +34,8 @@ def build() -> None:
   if sysconfig.get_platform() != "win-amd64":
     sys.exit("The Inno Setup installer requires a 64-bit (x64) Python interpreter.")
 
-  tmp_frozen_app_dir = const.DIST_DIR / f"exe.{sysconfig.get_platform()}-{const.PYTHON_VERSION}"
-  if not tmp_frozen_app_dir.exists():
-    sys.exit(f"{tmp_frozen_app_dir} does not exist. Run 'build app' first.")
+  if not const.FROZEN_APP_DIR.exists():
+    sys.exit(f"{const.FROZEN_APP_DIR} does not exist. Run 'build app' first.")
 
   tmp_iscc_filepath = shutil.which("ISCC") or DEFAULT_ISCC_FILEPATH
   if not pathlib.Path(tmp_iscc_filepath).exists():
@@ -45,6 +44,6 @@ def build() -> None:
   utils.run([
     tmp_iscc_filepath,
     f"/DMyAppVersion={const.PROJECT_VERSION}",
-    f"/DAppSourceDir={tmp_frozen_app_dir}",
+    f"/DAppSourceDir={const.FROZEN_APP_DIR}",
     INNO_SETUP_SCRIPT_FILEPATH,
   ])

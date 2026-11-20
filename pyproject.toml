@@ -24,10 +24,13 @@ Repository = "https://github.com/kullik01/pymol-open-source-setup"
 
 # Linter of the quick checks (.pre-commit-config.yaml)
 [tool.ruff]
-target-version = "py311"
 indent-width = 2
 # Upstream PyMOL code, kept close to the original
 extend-exclude = ["edited"]
+
+[tool.ruff.lint]
+# Also checks the import order (isort)
+extend-select = ["I"]
 
 [tool.ruff.lint.isort]
 lines-after-imports = 2

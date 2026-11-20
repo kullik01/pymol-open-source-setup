@@ -15,9 +15,6 @@ authors = [
     {name = "Martin Urban",email = "martin.urban@studmail.w-hs.de"}
 ]
 
-[build-system]
-requires = ["setuptools", "numpy==1.26.4", "toml"]
-build-backend = "setuptools.build_meta"
 
 [project.urls]
 Homepage = "https://kullik01.github.io/pymol-open-source-setup"

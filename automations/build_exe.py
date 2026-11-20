@@ -14,12 +14,19 @@
 #-*
 #Z* -------------------------------------------------------------------
 """
+import importlib.metadata
 import os
 import shutil
+import sys
 
 import const
 import utils
 
+
+# Version of pymol-open-source-whl that the files in edited/ were made for.
+# They are copies of the wheel's files with a few edits ("BEGIN EDITED CODE
+# SEGMENT"), so a newer wheel needs them ported before they may replace its files.
+EDITED_FOR_PYMOL_WHL_VERSION = "3.1.0.4"
 
 # Project files that replace or extend files of the installed pymol package
 # before it gets frozen: (source, destination)
@@ -45,6 +52,13 @@ def build() -> None:
   Windows/Linux: dist/exe.<platform>-<python version>/
   macOS: dist/PyMOL-Open-Source-<version>.app
   """
+  tmp_installed_version = importlib.metadata.version("pymol-open-source-whl")
+  if tmp_installed_version != EDITED_FOR_PYMOL_WHL_VERSION:
+    sys.exit(
+      f"pymol-open-source-whl {tmp_installed_version} is installed, but the files in edited/ were "
+      f"made for {EDITED_FOR_PYMOL_WHL_VERSION}. Port their 'BEGIN EDITED CODE SEGMENT' blocks into "
+      f"the new versions of the files, then update EDITED_FOR_PYMOL_WHL_VERSION in {__file__}."
+    )
   for tmp_source, tmp_destination in PATCHED_FILES:
     shutil.copyfile(tmp_source, tmp_destination)
 

@@ -39,11 +39,16 @@ env:
   PIP_DEFAULT_TIMEOUT: "60"
   PIP_RETRIES: "10"
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  # The smoke tests also download a structure from the PDB (HTTPS)
+  PYMOL_SMOKE_TEST_ONLINE: "1"
 
 jobs:
   # ----- Windows build section
   build-windows:
     runs-on: windows-latest
+    env:
+      # Uninstall entry of the installer (AppId in os_specific/windows/inno_setup/setup.iss)
+      UNINSTALL_KEY: 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{192F52C3-D86D-4735-9929-C7DF593CB534}_is1'
     defaults:
       run:
         shell: bash
@@ -71,11 +76,27 @@ jobs:
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe -OutFile "$env:RUNNER_TEMP\innosetup.exe"
+          # SHA-256 published by GitHub for the release file
+          $hash = (Get-FileHash "$env:RUNNER_TEMP\innosetup.exe" -Algorithm SHA256).Hash
+          if ($hash -ne '9c73c3bae7ed48d44112a0f48e66742c00090bdb5bef71d9d3c056c66e97b732') { throw "Unexpected SHA-256 of the Inno Setup installer: $hash" }
           Start-Process -FilePath "$env:RUNNER_TEMP\innosetup.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait
 
+      - name: Cache the Microsoft C++ runtime
+        # cx_Freeze downloads it from Microsoft once; the cache keeps builds reproducible.
+        # Change the key to take a newer runtime.
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Roaming\cx_Freeze\vc_redist
+          key: msvc-runtime-17-v1
+
       - name: Build frozen application
+        # Also downloads the Microsoft C++ runtime (if not cached), which is bundled into the app
+        timeout-minutes: 30
         shell: cmd
         run: win_automator.bat build app
+
+      - name: Check the bundled C++ runtime
+        run: .venv/Scripts/python tests/check_msvc_runtime.py "dist/exe.win-amd64-${PYTHON_VERSION}"
 
       - name: Smoke test
         timeout-minutes: 5
@@ -85,8 +106,54 @@ jobs:
         shell: cmd
         run: win_automator.bat build inno_setup
 
+      - name: Install with the installer
+        # Per-user install like on a user's PC (Git Bash would turn /VERYSILENT into a path)
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem "os_specific/dist/*_x64_setup.exe" | Select-Object -First 1
+          $process = Start-Process $setup.FullName -Wait -PassThru `
+            -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', "/LOG=$env:RUNNER_TEMP\install.log"
+          if ($process.ExitCode -ne 0) { Get-Content "$env:RUNNER_TEMP\install.log"; throw "Setup failed: $($process.ExitCode)" }
+          $exe = Join-Path $env:APPDATA "PyMOL-Open-Source\bin\Open-Source-PyMOL.exe"
+          if (-not (Test-Path $exe)) { throw "Not installed: $exe" }
+          foreach ($folder in [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs')) {
+            if (-not (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk'))) { throw "Shortcut missing in $folder" }
+          }
+          foreach ($folder in [Environment]::GetFolderPath('CommonDesktopDirectory'), [Environment]::GetFolderPath('CommonPrograms'), [Environment]::GetFolderPath('CommonStartMenu')) {
+            if (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk')) { throw "Shortcut in the All Users folder $folder" }
+          }
+          $version = (Get-ItemProperty $env:UNINSTALL_KEY).DisplayVersion
+          if ($version -ne $env:PROJECT_VERSION) { throw "Uninstall entry has version '$version'" }
+          "INSTALLED_APP=$exe" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+
+      - name: Smoke test of the installed app
+        timeout-minutes: 5
+        run: tests/run_smoke_test.sh "$(cygpath -u "$INSTALLED_APP")"
+
+      - name: Uninstall
+        timeout-minutes: 5
+        shell: pwsh
+        run: |
+          $app = Join-Path $env:APPDATA "PyMOL-Open-Source"
+          Start-Process (Join-Path $app "unins000.exe") -Wait -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'
+          # The uninstaller restarts itself from %TEMP%, so wait until the folder is gone
+          for ($i = 0; $i -lt 60 -and (Test-Path $app); $i++) { Start-Sleep -Seconds 2 }
+          if (Test-Path $app) { throw "Not uninstalled: $app" }
+          foreach ($folder in [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs')) {
+            if (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk')) { throw "Shortcut left in $folder" }
+          }
+          if (Test-Path $env:UNINSTALL_KEY) { throw "Uninstall entry left" }
+
       - name: Create portable archive
         run: 7z a -tzip -bso0 -bsp0 "os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_x64_portable.zip" "./dist/exe.win-amd64-${PYTHON_VERSION}/*"
+
+      - name: Test portable archive
+        timeout-minutes: 5
+        run: |
+          PORTABLE_DIR="${RUNNER_TEMP}/portable"
+          7z x -bso0 -bsp0 -o"${PORTABLE_DIR}" "os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_x64_portable.zip"
+          tests/run_smoke_test.sh "${PORTABLE_DIR}/Open-Source-PyMOL.exe"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6
@@ -142,7 +209,14 @@ jobs:
           codesign --verify --deep "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app"
 
       - name: Install create-dmg
-        run: brew install create-dmg
+        env:
+          CREATE_DMG_VERSION: "1.3.0"
+          CREATE_DMG_SHA256: "c50d2bc97c3d6292642bac55f530d247eaf4bf65ee605f26b4caf339383e381c"
+        run: |
+          curl -fsSL -o "${RUNNER_TEMP}/create-dmg.tar.gz" "https://github.com/create-dmg/create-dmg/archive/refs/tags/v${CREATE_DMG_VERSION}.tar.gz"
+          echo "${CREATE_DMG_SHA256}  ${RUNNER_TEMP}/create-dmg.tar.gz" | shasum -a 256 -c -
+          tar -xzf "${RUNNER_TEMP}/create-dmg.tar.gz" -C "${RUNNER_TEMP}"
+          echo "CREATE_DMG=${RUNNER_TEMP}/create-dmg-${CREATE_DMG_VERSION}/create-dmg" >> "$GITHUB_ENV"
 
       - name: Build DMG
         run: os_specific/macos/build_dmg.sh
@@ -163,6 +237,8 @@ jobs:
           test -f "$MOUNT_DIR/.background/dmg_background.svg"
           APP="$MOUNT_DIR/PyMOL-Open-Source-${PROJECT_VERSION}.app"
           codesign --verify --deep "$APP"
+          plutil -lint "$APP/Contents/Info.plist"
+          test "$(plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source"
           # PyMOL, Qt and numpy must be built for the architecture of this runner
           for MODULE in "$APP"/Contents/Resources/lib/{pymol/_cmd.*.so,PyQt5/QtCore.abi3.so,numpy/core/_multiarray_umath.*.so}; do
             ARCHS="$(lipo -archs "$MODULE")"
@@ -212,7 +288,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq rpm
-          sudo gem install --no-document fpm
+          sudo gem install --no-document fpm -v 1.18.0
 
       - name: Build .tar.gz, .deb and .rpm packages
         run: os_specific/linux/build_packages.sh

@@ -32,8 +32,10 @@ sed "s|/opt/open-source-pymol|${INSTALL_DIR}|g" \
 ln -s "${INSTALL_DIR}/Open-Source-PyMOL" "$STAGING_DIR/Open-Source-PyMOL"
 
 # System libraries that are not bundled: OpenGL, GLib, D-Bus, fonts and the
-# X11/XCB/Wayland libraries of the Qt platform plugins.
+# X11/XCB/Wayland libraries of the Qt platform plugins, plus the CA certificates
+# for HTTPS (e.g. fetching structures from the PDB).
 DEB_DEPENDS=(
+  ca-certificates
   libdbus-1-3 libegl1 libfontconfig1 libfreetype6 libgl1 libglib2.0-0
   libwayland-client0 libwayland-cursor0 libwayland-egl1
   libx11-6 libx11-xcb1 libxext6 libxrender1 libxkbcommon0 libxkbcommon-x11-0
@@ -92,6 +94,7 @@ build_rpm() {
   fpm "${FPM_ARGS[@]}" -t rpm --name "$APP_NAME" --architecture x86_64 \
     --rpm-rpmbuild-define "_build_id_links none" \
     --package "$OUT_DIR/${APP_NAME}_v${VERSION}_x86_64.rpm" \
+    --depends=ca-certificates \
     "${RPM_SONAMES[@]/#/--depends=}" \
     "${PACKAGE_CONTENTS[@]}"
 }

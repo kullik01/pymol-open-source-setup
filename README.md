@@ -34,7 +34,7 @@ Please note that the files provided here are **unofficial**. They are informal, 
 ## Contents of this repository
 | Folder | Content |
 |--------|---------|
-| `automations/` | Build commands (`./automator.sh build app`, `.\win_automator.bat build inno_setup`) |
+| `automations/` | Build commands (`./automator.sh build app`, `.\win_automator.bat build packages`) |
 | `os_specific/` | cx_Freeze configuration and packaging per platform (Inno Setup, DMG, .deb/.rpm/.tar.gz) |
 | `edited/` | PyMOL files changed for this setup (marked `BEGIN EDITED CODE SEGMENT`) and the start script |
 | `licenses/` | License texts shipped with every package |
@@ -53,7 +53,7 @@ The GitHub action [build_app.yaml](.github/workflows/build_app.yaml) runs exactl
 for all three platforms.
 
 ### Prerequisites
-- [uv](https://docs.astral.sh/uv/getting-started/installation/); it also installs Python 3.13 if needed
+- [uv](https://docs.astral.sh/uv/getting-started/installation/); it also installs the Python of `.python-version` if needed
 - Windows: [Inno Setup 7](https://jrsoftware.org/isinfo.php) (default install location or `ISCC.exe` on the `PATH`)
 - Linux (**only** for building the .deb/.rpm packages): [fpm](https://fpm.readthedocs.io/) and `rpmbuild`
   - Debian/Ubuntu: `sudo apt-get install ruby rpm && sudo gem install fpm`
@@ -73,7 +73,7 @@ On Windows, use `.\win_automator.bat` instead of `./automator.sh`.
    ```
    | Platform      | Output                                         |
    |---------------|------------------------------------------------|
-   | Windows/Linux | `dist/exe.<platform>-3.13/`                    |
+   | Windows/Linux | `dist/exe.<platform>-<Python version>/`        |
    | macOS         | `dist/PyMOL-Open-Source-<version>.app`         |
 3. Check the build with the smoke test (`test gui` also starts the Qt GUI):
    ```shell

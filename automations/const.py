@@ -36,6 +36,10 @@ VENV_SCRIPTS_DIR = pathlib.Path(sysconfig.get_path("scripts"))
 with open(PROJECT_ROOT_DIR / "pyproject.toml", "rb") as tmp_file:
   PROJECT_VERSION = tomllib.load(tmp_file)["project"]["version"]
 
+# The frozen application (see build_exe.build): a folder on Windows and Linux, an app bundle on macOS
+FROZEN_APP_DIR = DIST_DIR / f"exe.{sysconfig.get_platform()}-{PYTHON_VERSION}"
+MACOS_APP_DIR = DIST_DIR / f"PyMOL-Open-Source-{PROJECT_VERSION}.app"
+
 WIN32 = sys.platform == "win32"
 MACOS = sys.platform == "darwin"
 LINUX = sys.platform.startswith("linux")

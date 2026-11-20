@@ -34,11 +34,7 @@ permissions:
   contents: read
 
 env:
-  PYTHON_VERSION: "3.13"
   # More robust against temporary network problems with PyPI
-  PIP_DEFAULT_TIMEOUT: "60"
-  PIP_RETRIES: "10"
-  PIP_DISABLE_PIP_VERSION_CHECK: "1"
   # uv (./automator.sh setup) uses the Python of actions/setup-python, which gets bundled into the app
   UV_PYTHON_PREFERENCE: only-system
   # The smoke tests also download a structure from the PDB (HTTPS)
@@ -55,6 +51,9 @@ jobs:
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v10.3.3
+        with:
+          # The pre-commit cache below is the one this job uses
+          enable-cache: false
 
       - name: Cache the check tools
         uses: actions/cache@v6
@@ -78,6 +77,9 @@ jobs:
   # ----- Windows build section
   build-windows:
     runs-on: windows-latest
+    env:
+      # Uninstall entry of the installer (AppId in os_specific/windows/inno_setup/setup.iss)
+      UNINSTALL_KEY: 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{192F52C3-D86D-4735-9929-C7DF593CB534}_is1'
     defaults:
       run:
         shell: bash
@@ -88,13 +90,15 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version-file: '.python-version'
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v10.3.3
 
-      - name: Extract project version
-        run: echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)" >> "$GITHUB_ENV"
+      - name: Extract project and Python version
+        run: |
+          echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)" >> "$GITHUB_ENV"
+          echo "PYTHON_VERSION=$(cat .python-version)" >> "$GITHUB_ENV"
 
       - name: Create virtual environment
         shell: cmd
@@ -107,10 +111,18 @@ jobs:
           # SHA-256 published by GitHub for the release file
           $hash = (Get-FileHash "$env:RUNNER_TEMP\innosetup.exe" -Algorithm SHA256).Hash
           if ($hash -ne '8a5a6711c3766a6e5fb74f280ba0e3551e719ce94538d901fdbd1f8f9920b3f0') { throw "Unexpected SHA-256 of the Inno Setup installer: $hash" }
-          Start-Process -FilePath "$env:RUNNER_TEMP\innosetup.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait
+          Start-Process -FilePath "$env:RUNNER_TEMP\innosetup.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/ALLUSERS' -Wait
+
+      - name: Cache the Microsoft C++ runtime
+        # cx_Freeze downloads it from Microsoft once; the cache keeps builds reproducible.
+        # Change the key to take a newer runtime.
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Roaming\cxfreeze\vc_redist
+          key: msvc-runtime-17-v1
 
       - name: Build frozen application
-        # Also downloads the Microsoft C++ runtime, which is bundled into the app
+        # Also downloads the Microsoft C++ runtime (if not cached), which is bundled into the app
         timeout-minutes: 30
         shell: cmd
         run: win_automator.bat build app
@@ -120,7 +132,8 @@ jobs:
 
       - name: Smoke test
         timeout-minutes: 5
-        run: tests/run_smoke_test.sh "dist/exe.win-amd64-${PYTHON_VERSION}/Open-Source-PyMOL.exe"
+        shell: cmd
+        run: win_automator.bat test
 
       - name: GUI smoke test
         timeout-minutes: 5
@@ -131,13 +144,11 @@ jobs:
           GUI_TEST_DIR="$(cygpath -u "$RUNNER_TEMP")/gui-test"
           cp -r "dist/exe.win-amd64-${PYTHON_VERSION}" "$GUI_TEST_DIR"
           cp "$GUI_TEST_DIR/opengl32sw.dll" "$GUI_TEST_DIR/opengl32.dll"
-          # Software OpenGL in the runner VMs crashes now and then: one retry (a real error fails twice)
-          tests/run_smoke_test.sh --gui "$GUI_TEST_DIR/Open-Source-PyMOL.exe" ||
-            tests/run_smoke_test.sh --gui "$GUI_TEST_DIR/Open-Source-PyMOL.exe"
+          tests/run_smoke_test.sh --gui "$GUI_TEST_DIR/Open-Source-PyMOL.exe"
 
       - name: Build installer
         shell: cmd
-        run: win_automator.bat build inno_setup
+        run: win_automator.bat build packages
 
       - name: Install with the installer
         # Per-user install like on a user's PC (Git Bash would turn /VERYSILENT into a path)
@@ -156,8 +167,7 @@ jobs:
           foreach ($folder in [Environment]::GetFolderPath('CommonDesktopDirectory'), [Environment]::GetFolderPath('CommonPrograms'), [Environment]::GetFolderPath('CommonStartMenu')) {
             if (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk')) { throw "Shortcut in the All Users folder $folder" }
           }
-          $key = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{192F52C3-D86D-4735-9929-C7DF593CB534}_is1'
-          $version = (Get-ItemProperty $key).DisplayVersion
+          $version = (Get-ItemProperty $env:UNINSTALL_KEY).DisplayVersion
           if ($version -ne $env:PROJECT_VERSION) { throw "Uninstall entry has version '$version'" }
           "INSTALLED_APP=$exe" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
 
@@ -177,7 +187,7 @@ jobs:
           foreach ($folder in [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs')) {
             if (Test-Path (Join-Path $folder 'Open-Source PyMOL.lnk')) { throw "Shortcut left in $folder" }
           }
-          if (Test-Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{192F52C3-D86D-4735-9929-C7DF593CB534}_is1') { throw "Uninstall entry left" }
+          if (Test-Path $env:UNINSTALL_KEY) { throw "Uninstall entry left" }
 
       - name: Create portable archive
         run: 7z a -tzip -bso0 -bsp0 "os_specific/dist/PyMOL-Open-Source_v${PROJECT_VERSION}_x64_portable.zip" "./dist/exe.win-amd64-${PYTHON_VERSION}/*"
@@ -216,7 +226,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version-file: '.python-version'
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v10.3.3
@@ -237,10 +247,8 @@ jobs:
       - name: Smoke test
         timeout-minutes: 5
         run: |
-          tests/run_smoke_test.sh "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app/Contents/MacOS/PyMOL"
-          # Software OpenGL in the runner VMs crashes now and then: one retry (a real error fails twice)
-          tests/run_smoke_test.sh --gui "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app/Contents/MacOS/PyMOL" ||
-            tests/run_smoke_test.sh --gui "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app/Contents/MacOS/PyMOL"
+          ./automator.sh test
+          tests/run_smoke_test.sh --gui "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app/Contents/MacOS/PyMOL"
           codesign --verify --deep "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app"
 
       - name: Install create-dmg
@@ -254,7 +262,7 @@ jobs:
           echo "CREATE_DMG=${RUNNER_TEMP}/create-dmg-${CREATE_DMG_VERSION}/create-dmg" >> "$GITHUB_ENV"
 
       - name: Build DMG
-        run: os_specific/macos/build_dmg.sh
+        run: ./automator.sh build packages
 
       - name: Verify DMG
         # Mounts the DMG like a user would and tests the app inside it
@@ -274,13 +282,8 @@ jobs:
           codesign --verify --deep "$APP"
           plutil -lint "$APP/Contents/Info.plist"
           test "$(plutil -extract CFBundleIdentifier raw "$APP/Contents/Info.plist")" = "io.github.kullik01.pymol-open-source"
-          # PyMOL, Qt and numpy must contain the architecture of this runner (Qt is universal)
-          for MODULE in "$APP"/Contents/Resources/lib/{pymol/_cmd.*.so,PySide6/QtCore.abi3.so,numpy/_core/_multiarray_umath.*.so}; do
-            ARCHS="$(lipo -archs "$MODULE")"
-            echo "${ARCHS}  ${MODULE#"$APP"/}"
-            grep -qw "${{ matrix.arch }}" <<< "$ARCHS"
-          done
-          tests/check_macos_min_version.sh "$APP"
+          # PyMOL is built for this runner's architecture (build_dmg.sh checks that Qt and numpy match it)
+          test "$(lipo -archs "$APP"/Contents/Resources/lib/pymol/_cmd.*.so)" = "${{ matrix.arch }}"
           tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL"
 
       - name: Upload artifact
@@ -303,7 +306,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version-file: '.python-version'
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v10.3.3
@@ -311,27 +314,23 @@ jobs:
       - name: Create virtual environment
         run: ./automator.sh setup
 
-      - name: Install libxcb-cursor
-        # Bundled into the app for Qt's X11 support (RHEL/Alma 8 only have it in EPEL)
+      - name: Install system packages
+        # libxcb-cursor is bundled into the app for Qt's X11 support (RHEL/Alma 8 only have
+        # it in EPEL); rpm and fpm build the packages
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq libxcb-cursor0
+          sudo apt-get install -y -qq libxcb-cursor0 rpm
+          sudo gem install --no-document fpm -v 1.18.0
 
       - name: Build frozen application
         run: ./automator.sh build app
 
       - name: Smoke test
         timeout-minutes: 5
-        run: tests/run_smoke_test.sh dist/exe.linux-*/Open-Source-PyMOL
-
-      - name: Install packaging tools
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq rpm
-          sudo gem install --no-document fpm -v 1.18.0
+        run: ./automator.sh test
 
       - name: Build .tar.gz, .deb and .rpm packages
-        run: os_specific/linux/build_packages.sh
+        run: ./automator.sh build packages
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6
@@ -389,6 +388,11 @@ jobs:
   # right at the start.
   website:
     runs-on: ubuntu-latest
+    env:
+      # More robust against temporary network problems with PyPI
+      PIP_DEFAULT_TIMEOUT: "60"
+      PIP_RETRIES: "10"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -405,7 +409,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version-file: '.python-version'
           cache: 'pip'
           cache-dependency-path: 'docs/website/requirements.txt'
 

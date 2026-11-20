@@ -1,0 +1,18 @@
+# Quick checks of the Python code, shell scripts and GitHub workflows; the CI job "checks" runs them.
+# Locally: "uvx pre-commit run --all-files", or "uvx pre-commit install" to run them before every commit.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.3
+    hooks:
+      - id: ruff-check
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+        exclude: \.zsh$  # ShellCheck does not support zsh
+  - repo: https://github.com/Mateusz-Grzelinski/actionlint-py
+    rev: v1.7.12.25
+    hooks:
+      - id: actionlint
+        # Also checks the run: scripts, like on the GitHub runner
+        additional_dependencies: [shellcheck-py==0.11.0.1]

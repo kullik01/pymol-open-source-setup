@@ -32,7 +32,7 @@ LICENSES_DIR = PROJECT_ROOT_DIR / "licenses"
 # Python distributions that end up in the frozen application
 RUNTIME_DISTRIBUTIONS = (
   "pymol-open-source-whl", "PySide6-Essentials", "shiboken6", "numpy", "biopython",
-  "Pmw", "msgpack", "msgpack-python", "simplejson", "rules",
+  "Pmw", "msgpack", "simplejson", "rules",
   "freeze-core",  # the executable's startup code and the native libraries of cx_Freeze
 )
 # Qt for Python: LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only (texts not in the wheels)

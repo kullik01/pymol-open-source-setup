@@ -34,8 +34,8 @@ Please note that the files provided here are **unofficial**. They are informal, 
 ## Contents of this repository
 | Folder | Content |
 |--------|---------|
-| `automations/` | Build commands (`./automator.sh build app`, `.\win_automator.bat build inno_setup`) |
-| `os_specific/` | cx_Freeze configuration, requirements and packaging per platform (Inno Setup, DMG, .deb/.rpm/.tar.gz) |
+| `automations/` | Build commands (`./automator.sh build app`, `.\win_automator.bat build packages`) |
+| `os_specific/` | cx_Freeze configuration and packaging per platform (Inno Setup, DMG, .deb/.rpm/.tar.gz) |
 | `edited/` | PyMOL files changed for this setup (marked `BEGIN EDITED CODE SEGMENT`) and the start script |
 | `licenses/` | License texts shipped with every package |
 | `tests/` | Smoke tests of the frozen app and checks of the packages |
@@ -53,44 +53,50 @@ The GitHub action [build_app.yaml](.github/workflows/build_app.yaml) runs exactl
 for all three platforms.
 
 ### Prerequisites
-- Python 3.11
+- [uv](https://docs.astral.sh/uv/getting-started/installation/); it also installs the Python of `.python-version` (3.11) if needed
 - Windows: [Inno Setup 6](https://jrsoftware.org/isinfo.php) (default install location or `ISCC.exe` on the `PATH`)
 - Linux (**only** for building the .deb/.rpm packages): [fpm](https://fpm.readthedocs.io/) and `rpmbuild`
   - Debian/Ubuntu: `sudo apt-get install ruby rpm && sudo gem install fpm`
   - Fedora: `sudo dnf install ruby rpm-build && sudo gem install fpm`
+- macOS (**only** for building the DMG): [create-dmg](https://github.com/create-dmg/create-dmg) (`brew install create-dmg`)
 
 ### Step-by-step guide
-1. Create a virtual environment named `.venv` in the repository root and install the
-   build dependencies of your platform:
+On Windows, use `.\win_automator.bat` instead of `./automator.sh`.
+1. Create the virtual environment `.venv` with all dependencies (`requirements.txt`, one file
+   for all platforms). Run it again after the requirements changed:
    ```shell
-   python3.11 -m venv .venv
-   .venv/bin/python -m pip install -r os_specific/<linux|macos>/requirements.txt
-   ```
-   On Windows:
-   ```shell
-   py -3.11 -m venv .venv
-   .venv\Scripts\python.exe -m pip install -r os_specific\windows\requirements.txt
+   ./automator.sh setup
    ```
 2. Build the frozen application into the `dist` directory:
    ```shell
-   ./automator.sh build app          # Linux and macOS
-   .\win_automator.bat build app     # Windows
+   ./automator.sh build app
    ```
    | Platform      | Output                                         |
    |---------------|------------------------------------------------|
    | Windows/Linux | `dist/exe.<platform>-3.11/`                    |
    | macOS         | `dist/PyMOL-Open-Source-<version>.app`         |
-3. Optionally, check the build with the headless smoke test:
+3. Check the build with the smoke test (`test gui` also starts the Qt GUI):
    ```shell
-   tests/run_smoke_test.sh dist/exe.linux-x86_64-3.11/Open-Source-PyMOL
+   ./automator.sh test
    ```
-4. Create the installer/packages (written to `os_specific/dist`):
-   - Windows: `.\win_automator.bat build inno_setup`
-   - Linux: `os_specific/linux/build_packages.sh` (creates the .tar.gz, .deb and .rpm)
-   - macOS: `os_specific/macos/build_dmg.sh` (requires [create-dmg](https://github.com/create-dmg/create-dmg):
-     `brew install create-dmg`). The DMG name tells the architecture of the built app
-     (`_macOS_AppleSilicon.dmg` or `_macOS_Intel.dmg`); on a Mac it is the architecture of
-     the Python used for the build.
+4. Create the installer/packages of your platform in `os_specific/dist` (Windows: Inno Setup
+   installer; Linux: .tar.gz, .deb and .rpm; macOS: DMG):
+   ```shell
+   ./automator.sh build packages
+   ```
+   The DMG name tells the architecture of the built app (`_macOS_AppleSilicon.dmg` or
+   `_macOS_Intel.dmg`); on a Mac it is the architecture of the Python used for the build.
+
+`./automator.sh build all` runs steps 2 and 4 in one go.
+
+### Quick checks
+The CI job "checks" lints the Python code (ruff), the shell scripts (shellcheck) and the
+GitHub workflows (actionlint) in about half a minute. Run the same checks locally with
+[uv](https://docs.astral.sh/uv/):
+```shell
+uvx pre-commit run --all-files    # once
+uvx pre-commit install            # before every commit from now on
+```
 
 ## Releasing a new version
 The version in [pyproject.toml](pyproject.toml) is the only place to change. The build,

@@ -36,13 +36,36 @@ permissions:
 env:
   PYTHON_VERSION: "3.11"
   # More robust against temporary network problems with PyPI
-  PIP_DEFAULT_TIMEOUT: "60"
-  PIP_RETRIES: "10"
-  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  # uv (./automator.sh setup) uses the Python of actions/setup-python, which gets bundled into the app
+  UV_PYTHON_PREFERENCE: only-system
   # The smoke tests also download a structure from the PDB (HTTPS)
   PYMOL_SMOKE_TEST_ONLINE: "1"
 
 jobs:
+  # ----- Quick checks: Python (ruff), shell scripts (shellcheck) and workflows (actionlint),
+  # configured in .pre-commit-config.yaml
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          # The pre-commit cache below is the one this job uses
+          enable-cache: false
+
+      - name: Cache the check tools
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run the checks
+        run: uvx pre-commit@4.7.0 run --all-files --show-diff-on-failure
+  # --- end
+
   # ----- Windows build section
   build-windows:
     runs-on: windows-latest
@@ -60,17 +83,16 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: 'os_specific/windows/requirements.txt'
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v10.3.3
 
       - name: Extract project version
         run: echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)" >> "$GITHUB_ENV"
 
       - name: Create virtual environment
-        run: |
-          python -m venv .venv
-          .venv/Scripts/python -m pip install wheel setuptools
-          .venv/Scripts/python -m pip install -r os_specific/windows/requirements.txt
+        shell: cmd
+        run: win_automator.bat setup
 
       - name: Install Inno Setup
         shell: pwsh
@@ -100,7 +122,8 @@ jobs:
 
       - name: Smoke test
         timeout-minutes: 5
-        run: tests/run_smoke_test.sh "dist/exe.win-amd64-${PYTHON_VERSION}/Open-Source-PyMOL.exe"
+        shell: cmd
+        run: win_automator.bat test
 
       - name: GUI smoke test
         timeout-minutes: 5
@@ -115,7 +138,7 @@ jobs:
 
       - name: Build installer
         shell: cmd
-        run: win_automator.bat build inno_setup
+        run: win_automator.bat build packages
 
       - name: Install with the installer
         # Per-user install like on a user's PC (Git Bash would turn /VERYSILENT into a path)
@@ -194,17 +217,15 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: 'os_specific/macos/requirements.txt'
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v10.3.3
 
       - name: Extract project version
         run: echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)" >> "$GITHUB_ENV"
 
       - name: Create virtual environment
-        run: |
-          python -m venv .venv
-          .venv/bin/python -m pip install wheel setuptools
-          .venv/bin/python -m pip install -r os_specific/macos/requirements.txt
+        run: ./automator.sh setup
 
       - name: Build app bundle
         run: ./automator.sh build app
@@ -216,7 +237,7 @@ jobs:
       - name: Smoke test
         timeout-minutes: 5
         run: |
-          tests/run_smoke_test.sh "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app/Contents/MacOS/PyMOL"
+          ./automator.sh test
           tests/run_smoke_test.sh --gui "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app/Contents/MacOS/PyMOL"
           codesign --verify --deep "dist/PyMOL-Open-Source-${PROJECT_VERSION}.app"
 
@@ -231,7 +252,7 @@ jobs:
           echo "CREATE_DMG=${RUNNER_TEMP}/create-dmg-${CREATE_DMG_VERSION}/create-dmg" >> "$GITHUB_ENV"
 
       - name: Build DMG
-        run: os_specific/macos/build_dmg.sh
+        run: ./automator.sh build packages
 
       - name: Verify DMG
         # Mounts the DMG like a user would and tests the app inside it
@@ -276,14 +297,12 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-          cache-dependency-path: 'os_specific/linux/requirements.txt'
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v10.3.3
 
       - name: Create virtual environment
-        run: |
-          python -m venv .venv
-          .venv/bin/python -m pip install wheel setuptools
-          .venv/bin/python -m pip install -r os_specific/linux/requirements.txt
+        run: ./automator.sh setup
 
       - name: Install system packages
         # libxcb-cursor is bundled into the app for Qt's X11 support (RHEL/Alma 8 only have
@@ -298,10 +317,10 @@ jobs:
 
       - name: Smoke test
         timeout-minutes: 5
-        run: tests/run_smoke_test.sh dist/exe.linux-*/Open-Source-PyMOL
+        run: ./automator.sh test
 
       - name: Build .tar.gz, .deb and .rpm packages
-        run: os_specific/linux/build_packages.sh
+        run: ./automator.sh build packages
 
       - name: Upload artifact
         uses: actions/upload-artifact@v6
@@ -359,6 +378,11 @@ jobs:
   # right at the start.
   website:
     runs-on: ubuntu-latest
+    env:
+      # More robust against temporary network problems with PyPI
+      PIP_DEFAULT_TIMEOUT: "60"
+      PIP_RETRIES: "10"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -396,7 +420,7 @@ jobs:
   # match. For a version tag it also creates a draft release with all files,
   # which can be checked and published on GitHub.
   release:
-    needs: [website, build-windows, build-macos, build-gnu-linux, test-gnu-linux-packages]
+    needs: [checks, website, build-windows, build-macos, build-gnu-linux, test-gnu-linux-packages]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -418,7 +442,7 @@ jobs:
           merge-multiple: true
 
       - name: Check website download links against the packages
-        run: ls release-files | tests/check_release_assets.sh site
+        run: (cd release-files && printf '%s\n' *) | tests/check_release_assets.sh site
 
       - name: Create draft release
         if: startsWith(github.ref, 'refs/tags/v')

@@ -21,3 +21,16 @@ authors = [
 Homepage = "https://kullik01.github.io/pymol-open-source-setup"
 Documentation = "https://pymolwiki.org/index.php/Main_Page"
 Repository = "https://github.com/kullik01/pymol-open-source-setup"
+
+# Linter of the quick checks (.pre-commit-config.yaml)
+[tool.ruff]
+indent-width = 2
+# Upstream PyMOL code, kept close to the original
+extend-exclude = ["edited"]
+
+[tool.ruff.lint]
+# Also checks the import order (isort)
+extend-select = ["I"]
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2

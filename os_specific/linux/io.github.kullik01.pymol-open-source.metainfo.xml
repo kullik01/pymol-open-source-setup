@@ -5,7 +5,7 @@
   <id>io.github.kullik01.pymol-open-source</id>
   <metadata_license>CC0-1.0</metadata_license>
   <!-- This project's code, the bundled Qt/PySide6 and PyMOL; the texts are in the app's licenses folder -->
-  <project_license>BSD-3-Clause AND LGPL-3.0-only AND LicenseRef-PyMOL</project_license>
+  <project_license>BSD-3-Clause AND LGPL-3.0-only AND HPND</project_license>
   <name>Open-Source PyMOL</name>
   <summary>Visualize and animate 3D molecular structures</summary>
   <developer id="io.github.kullik01">

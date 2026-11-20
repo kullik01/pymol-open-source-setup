@@ -41,6 +41,32 @@ env:
   PYMOL_SMOKE_TEST_ONLINE: "1"
 
 jobs:
+  # ----- Which parts a change affects: a pull request that only changes text files
+  # (README, AI notes, Dependabot and release-notes settings) skips the app builds.
+  # Pushes to main and version tags always build everything.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.filter.outputs.build }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - name: Check whether the app has to be built
+        id: filter
+        env:
+          TEXT_ONLY: '^(README\.md|AGENTS\.md|CLAUDE\.md|\.opp/.*|\.github/dependabot\.yml|\.github/release\.yml)$'
+        run: |
+          BUILD=true
+          # The checked-out merge commit's first parent is the base branch
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ] && ! git diff --name-only HEAD^1 HEAD | grep -qvE "$TEXT_ONLY"; then
+            BUILD=false
+          fi
+          echo "build=${BUILD}" | tee -a "$GITHUB_OUTPUT"
+  # --- end
+
   # ----- Quick checks: Python (ruff), shell scripts (shellcheck) and workflows (actionlint),
   # configured in .pre-commit-config.yaml
   checks:
@@ -76,6 +102,8 @@ jobs:
 
   # ----- Windows build section
   build-windows:
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: windows-latest
     env:
       # Uninstall entry of the installer (AppId in os_specific/windows/inno_setup/setup.iss)
@@ -226,6 +254,8 @@ jobs:
           # Last Intel (x86_64) runner image of GitHub, supported until August 2027
           - { runner: macos-15-intel, arch: x86_64, label: Intel }
     name: build-macos (${{ matrix.label }})
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout repository
@@ -308,6 +338,8 @@ jobs:
   # ----- GNU Linux build section
   build-gnu-linux:
     # The oldest available runner, so the app also runs on older distributions
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
@@ -397,6 +429,8 @@ jobs:
   # tag it first checks that the tag matches the version, so a wrong tag fails
   # right at the start.
   website:
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: ubuntu-latest
     env:
       # More robust against temporary network problems with PyPI
@@ -440,21 +474,36 @@ jobs:
   # match. For a version tag it also creates a draft release with all files,
   # which can be checked and published on GitHub.
   release:
-    needs: [checks, website, build-windows, build-macos, build-gnu-linux, test-gnu-linux-packages]
+    needs: [changes, checks, website, build-windows, build-macos, build-gnu-linux, test-gnu-linux-packages]
+    # The ruleset of 'main' requires this check. It runs even if a job failed or was
+    # skipped and fails if any job failed, because a skipped check counts as passed.
+    # A cancelled run (a newer push to the same pull request) skips it.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      BUILD: ${{ needs.changes.outputs.build }}
     steps:
+      - name: Fail if a job failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "A job failed or was cancelled." >&2
+          exit 1
+
       - name: Checkout repository
+        if: env.BUILD == 'true'
         uses: actions/checkout@v7
 
       - name: Download website
+        if: env.BUILD == 'true'
         uses: actions/download-artifact@v8
         with:
           name: website
           path: site
 
       - name: Download packages
+        if: env.BUILD == 'true'
         uses: actions/download-artifact@v8
         with:
           pattern: PyMOL-Open-Source-*
@@ -462,10 +511,11 @@ jobs:
           merge-multiple: true
 
       - name: Check website download links against the packages
+        if: env.BUILD == 'true'
         run: (cd release-files && printf '%s\n' *) | tests/check_release_assets.sh site
 
       - name: Create draft release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: env.BUILD == 'true' && startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

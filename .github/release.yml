@@ -1,0 +1,9 @@
+# Sections of the release notes that the release job generates (gh release create --generate-notes)
+changelog:
+  categories:
+    - title: Changes
+      labels: ["*"]
+      exclude:
+        labels: [dependencies]
+    - title: Dependency updates
+      labels: [dependencies]

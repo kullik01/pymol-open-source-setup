@@ -1272,22 +1272,47 @@ def execapp():
     # BEGIN EDITED CODE SEGMENT
     # :author Hannah Kullik
     # Show the splash screen at the same size at every display scaling
-    # (100 %, 125 %, 150 %, 200 % ...). PyMOL sizes it with the whole-number
-    # display_scale_factor, so at fractional scalings (e.g. 150 %) it came out
-    # smaller. After PyMOL has loaded it, size the window to the image size
-    # times the window's real scale.
+    # (100 %, 125 %, 150 %, 200 % ...). PyMOL sizes the view and draws the
+    # image with the whole-number display_scale_factor, so at fractional
+    # scalings (e.g. 150 %) the splash came out a third smaller. Scale the
+    # image by the remaining fraction and size the view by the real scale.
+    # Like PyMOL, size the view first and load the image second: a size
+    # change after loading discards the image (black view).
     import pymol.commanding
     load_splash_image = pymol.commanding._load_splash_image
 
     def load_splash_image_at_real_scale(filename, url, _self=pymol.cmd):
-        load_splash_image(filename, url, _self)
         if url or not os.path.exists(filename) or _self.get_names():
-            return
-        import struct
-        with open(filename, 'rb') as handle:
-            width, height = struct.unpack('>II', handle.read(24)[16:24])
+            return load_splash_image(filename, url, _self)
+        import tempfile
+        import time
+        # Wait (at most 5 s) until the window is shown: on Wayland the
+        # compositor sets the window's size when it shows it, which would
+        # override an earlier size. This runs in PyMOL's splash thread.
+        for _ in range(100):
+            handle = window.windowHandle()
+            if handle is not None and handle.isExposed():
+                break
+            time.sleep(0.05)
+        image = QtGui.QImage(filename)
+        width, height = image.width(), image.height()
         scale = window.pymolwidget.devicePixelRatioF()
+        fraction = scale / max(1, int(scale))
+        scaled_filename = ''
+        if abs(fraction - 1) > 0.01:
+            image = image.scaled(
+                round(width * fraction), round(height * fraction),
+                Qt.AspectRatioMode.IgnoreAspectRatio,
+                Qt.TransformationMode.SmoothTransformation)
+            handle, scaled_filename = tempfile.mkstemp('.png')
+            os.close(handle)
+            image.save(scaled_filename)
+        # hide the text splash, as PyMOL does
+        print()
         _self.viewport(round(width * scale), round(height * scale))
+        _self.load_png(scaled_filename or filename, 0, quiet=1)
+        if scaled_filename:
+            os.unlink(scaled_filename)
 
     pymol.commanding._load_splash_image = load_splash_image_at_real_scale
     # END EDITED CODE SEGMENT

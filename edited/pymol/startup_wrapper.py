@@ -44,9 +44,27 @@ def _use_pyside6() -> None:
   os.environ["QT_API"] = "pyside6"
 
 
+def _use_whole_scale_on_wayland() -> None:
+  """Gives the window a whole-number scale on native Wayland (e.g. 2 at 150 %).
+
+  With fractional scaling, Qt first gives a Wayland window the screen's scale
+  (2) and switches to the fractional one (1.5) after it is shown. PyMOL then
+  discards the splash screen (black view), and at fractional scales it draws
+  its own panel text smaller. Rounding up keeps one scale from the start; the
+  compositor scales the window down sharply. X11, Windows and macOS keep
+  their scales. Nothing is changed if the user set the rounding policy.
+  """
+  if (not sys.platform.startswith("linux") or not os.environ.get("WAYLAND_DISPLAY")
+      or os.environ.get("QT_SCALE_FACTOR_ROUNDING_POLICY")):
+    return
+  if os.environ.get("QT_QPA_PLATFORM", "wayland").startswith("wayland"):
+    os.environ["QT_SCALE_FACTOR_ROUNDING_POLICY"] = "Ceil"
+
+
 if __name__ == '__main__':
   _use_system_ca_certificates()
   _use_pyside6()
+  _use_whole_scale_on_wayland()
 
   import pymol  # only after the environment is set up (imports ssl)
   pymol.launch(sys.argv)

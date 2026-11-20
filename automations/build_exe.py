@@ -18,6 +18,7 @@ import importlib.metadata
 import os
 import pathlib
 import platform
+import re
 import shutil
 import sys
 
@@ -46,6 +47,51 @@ PATCHED_FILES = [
     const.PYMOL_PACKAGE_DIR / "data" / "pymol" / "splash.png",
   ),
 ]
+
+
+MAX_GLIBC_VERSION = (2, 28)
+"""Newest glibc the frozen Linux app may need: RHEL/AlmaLinux 8's."""
+
+GLIBC_SYMBOL_PATTERN = re.compile(rb"GLIBC_(\d+)\.(\d+)")
+"""Version tag of the glibc symbols a Linux library needs."""
+
+
+def check_glibc_versions() -> None:
+  """Reports libraries of the frozen app that need a newer glibc (Linux).
+
+  A build on a new distribution can bundle that machine's libraries, such
+  as libxcb-cursor, which then need a newer glibc than the oldest
+  supported distribution has. In CI, which builds the release packages,
+  this stops the build; locally it is a warning, because such a build
+  still runs on the build machine and on newer distributions.
+  """
+  tmp_findings = []
+  for tmp_path in sorted(const.FROZEN_APP_DIR.rglob("*.so*")):
+    if tmp_path.is_symlink() or not tmp_path.is_file():
+      continue
+    tmp_versions = {
+      (int(tmp_major), int(tmp_minor))
+      for tmp_major, tmp_minor in GLIBC_SYMBOL_PATTERN.findall(
+        tmp_path.read_bytes()
+      )
+    }
+    tmp_newest = max(tmp_versions, default=MAX_GLIBC_VERSION)
+    if tmp_newest > MAX_GLIBC_VERSION:
+      tmp_name = tmp_path.relative_to(const.FROZEN_APP_DIR)
+      tmp_findings.append(
+        f"  {tmp_name} needs glibc {tmp_newest[0]}.{tmp_newest[1]}"
+      )
+  if not tmp_findings:
+    return
+  tmp_message = "\n".join([
+    "These libraries need a newer glibc than RHEL/AlmaLinux 8 has (2.28),",
+    "so the app will not start there. Build the release packages in CI",
+    "(Ubuntu 22.04) or in an Ubuntu 22.04 container:",
+    *tmp_findings,
+  ])
+  if os.environ.get("CI"):
+    sys.exit(tmp_message)
+  print(f"Warning: {tmp_message}")
 
 
 def bundle_libxcb_cursor() -> None:
@@ -116,5 +162,6 @@ def build() -> None:
   )
   if const.LINUX:
     bundle_libxcb_cursor()
+    check_glibc_versions()
   if const.MACOS:
     thin_macos_app()

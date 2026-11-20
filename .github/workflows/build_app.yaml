@@ -429,6 +429,8 @@ jobs:
   # tag it first checks that the tag matches the version, so a wrong tag fails
   # right at the start.
   website:
+    needs: changes
+    if: needs.changes.outputs.build == 'true'
     runs-on: ubuntu-latest
     env:
       # More robust against temporary network problems with PyPI
@@ -483,12 +485,11 @@ jobs:
     env:
       BUILD: ${{ needs.changes.outputs.build }}
     steps:
-      - name: All jobs passed
+      - name: Fail if a job failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: |
-          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = "true" ]; then
-            echo "A job failed or was cancelled." >&2
-            exit 1
-          fi
+          echo "A job failed or was cancelled." >&2
+          exit 1
 
       - name: Checkout repository
         if: env.BUILD == 'true'

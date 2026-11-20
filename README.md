@@ -41,7 +41,7 @@ Please note that the files provided here are **unofficial**. They are informal, 
 | `tests/` | Smoke tests of the frozen app and checks of the packages |
 | `docs/website/` | The [website](https://kullik01.github.io/pymol-open-source-setup/) (MkDocs) |
 
-The version of the packages (e.g. 3.1.0.4+4) is the version of the PyMOL wheel plus a build number of
+The version of the packages (e.g. 3.2.0.3+1) is the version of the PyMOL wheel plus a build number of
 this setup. The application itself shows the version of the PyMOL core it is built from (currently
 3.2.0a, a development version).
 

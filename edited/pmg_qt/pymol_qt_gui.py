@@ -1269,6 +1269,29 @@ def execapp():
     def viewport(w=-1, h=-1, _self=None):
         window.viewportsignal.emit(int(w), int(h))
 
+    # BEGIN EDITED CODE SEGMENT
+    # :author Hannah Kullik
+    # Show the splash screen at the same size at every display scaling
+    # (100 %, 125 %, 150 %, 200 % ...). PyMOL sizes it with the whole-number
+    # display_scale_factor, so at fractional scalings (e.g. 150 %) it came out
+    # smaller. After PyMOL has loaded it, size the window to the image size
+    # times the window's real scale.
+    import pymol.commanding
+    load_splash_image = pymol.commanding._load_splash_image
+
+    def load_splash_image_at_real_scale(filename, url, _self=pymol.cmd):
+        load_splash_image(filename, url, _self)
+        if url or not os.path.exists(filename) or _self.get_names():
+            return
+        import struct
+        with open(filename, 'rb') as handle:
+            width, height = struct.unpack('>II', handle.read(24)[16:24])
+        scale = window.pymolwidget.devicePixelRatioF()
+        _self.viewport(round(width * scale), round(height * scale))
+
+    pymol.commanding._load_splash_image = load_splash_image_at_real_scale
+    # END EDITED CODE SEGMENT
+
     @commandoverloaddecorator
     def full_screen(toggle=-1, _self=None):
         from pymol import viewing as v

@@ -475,7 +475,8 @@ jobs:
     needs: [changes, checks, website, build-windows, build-macos, build-gnu-linux, test-gnu-linux-packages]
     # The ruleset of 'main' requires this check. It runs even if a job failed or was
     # skipped and fails if any job failed, because a skipped check counts as passed.
-    if: always()
+    # A cancelled run (a newer push to the same pull request) skips it.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     permissions:
       contents: write

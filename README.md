@@ -111,7 +111,10 @@ uvx pre-commit install            # before every commit from now on
 ### Dependency updates (Dependabot)
 Dependabot opens weekly, grouped pull requests for the Python packages, the GitHub Actions
 and the pre-commit hooks, with versions that are at least 14 days old. Minor and patch
-updates merge themselves once CI is green; major updates wait for a review. Deliberate limits:
+updates merge themselves once CI is green; major updates wait for a review. Such an automatic
+merge does not start a new CI run on `main` (GitHub's rule for its own token); the pull
+request's CI has tested it, and the next push or release tag builds everything again.
+Deliberate limits:
 - **PyMOL wheel** (`pymol-open-source-whl`): always its own pull request without auto-merge,
   because the files in `edited/` must be ported to the new version first (the build stops
   until `EDITED_FOR_PYMOL_WHL_VERSION` in `automations/build_exe.py` matches).

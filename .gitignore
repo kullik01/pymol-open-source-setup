@@ -175,3 +175,6 @@ cython_debug/
 /pre-built/
 
 docs/website/static/
+# Written by the opp-workflow plugin: what it writes into the checkout.
+/graphify-out/
+/.opp/local/

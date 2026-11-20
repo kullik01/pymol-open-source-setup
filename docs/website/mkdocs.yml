@@ -13,8 +13,6 @@ nav:
 
 theme:
     name: material
-    # Keeps today's look with Zensical, the successor of Material for MkDocs (EOL May 2027)
-    variant: classic
     custom_dir: material
     language: en
     logo: assets/images/logo.png
@@ -33,9 +31,6 @@ extra_css:
     - stylesheets/extra.css
 
 plugins:
-    # No search box (Zensical would enable search by default)
-    - search:
-        enabled: false
     - offline
     # Version, file names and download links from pyproject.toml, see main.py
     - macros:

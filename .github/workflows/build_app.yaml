@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v10.3.3
@@ -85,10 +85,10 @@ jobs:
         shell: bash
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version-file: '.python-version'
 
@@ -116,7 +116,7 @@ jobs:
       - name: Cache the Microsoft C++ runtime
         # cx_Freeze downloads it from Microsoft once; the cache keeps builds reproducible.
         # Change the key to take a newer runtime.
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~\AppData\Roaming\cxfreeze\vc_redist
           key: msvc-runtime-17-v1
@@ -208,7 +208,7 @@ jobs:
           tests/run_smoke_test.sh "${PORTABLE_DIR}/Open-Source-PyMOL.exe"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: PyMOL-Open-Source-Windows-x64-Setup
           path: os_specific/dist/*
@@ -229,10 +229,10 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version-file: '.python-version'
 
@@ -297,7 +297,7 @@ jobs:
           tests/run_smoke_test.sh "$APP/Contents/MacOS/PyMOL"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: PyMOL-Open-Source-macOS-${{ matrix.label }}-Setup
           path: os_specific/dist/*.dmg
@@ -311,10 +311,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version-file: '.python-version'
 
@@ -343,7 +343,7 @@ jobs:
         run: ./automator.sh build packages
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: PyMOL-Open-Source-GNU-Linux-x86_64-Setup
           path: os_specific/dist/*
@@ -376,12 +376,12 @@ jobs:
         run: ${{ matrix.setup }}
 
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           sparse-checkout: tests
 
       - name: Download packages
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: PyMOL-Open-Source-GNU-Linux-x86_64-Setup
           path: packages
@@ -405,7 +405,7 @@ jobs:
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Check that the tag matches the version
         if: startsWith(github.ref, 'refs/tags/v')
@@ -417,7 +417,7 @@ jobs:
           fi
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version-file: '.python-version'
           cache: 'pip'
@@ -429,7 +429,7 @@ jobs:
           mkdocs build --strict --config-file docs/website/mkdocs.yml --site-dir "${RUNNER_TEMP}/site"
 
       - name: Upload website
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: website
           path: ${{ runner.temp }}/site
@@ -446,16 +446,16 @@ jobs:
       contents: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Download website
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: website
           path: site
 
       - name: Download packages
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: PyMOL-Open-Source-*
           path: release-files

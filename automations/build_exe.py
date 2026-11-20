@@ -39,6 +39,10 @@ PATCHED_FILES = [
     const.SITE_PACKAGES_DIR / "pmg_qt" / "pymol_qt_gui.py",
   ),
   (
+    const.PROJECT_ROOT_DIR / "edited" / "pmg_qt" / "pymol_gl_widget.py",
+    const.SITE_PACKAGES_DIR / "pmg_qt" / "pymol_gl_widget.py",
+  ),
+  (
     const.PROJECT_ROOT_DIR / "alternative_design" / "alt_logo.png",
     const.PYMOL_PACKAGE_DIR / "data" / "pymol" / "icons" / "alt_logo.png",
   ),

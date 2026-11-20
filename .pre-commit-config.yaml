@@ -2,7 +2,7 @@
 # Locally: "uvx pre-commit run --all-files", or "uvx pre-commit install" to run them before every commit.
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.3
+    rev: v0.17.4
     hooks:
       - id: ruff-check
   - repo: https://github.com/shellcheck-py/shellcheck-py

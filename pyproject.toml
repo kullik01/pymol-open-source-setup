@@ -25,8 +25,8 @@ Repository = "https://github.com/kullik01/pymol-open-source-setup"
 # Linter of the quick checks (.pre-commit-config.yaml)
 [tool.ruff]
 indent-width = 2
-# Upstream PyMOL code, kept close to the original
-extend-exclude = ["edited"]
+# Upstream PyMOL code, kept close to the original; .opp/: vendored opp-workflow style checker
+extend-exclude = ["edited", ".opp"]
 
 [tool.ruff.lint]
 # Also checks the import order (isort)

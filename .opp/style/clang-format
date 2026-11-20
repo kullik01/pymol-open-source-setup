@@ -1,0 +1,55 @@
+---
+# RigiMorph's C++ layout: the Core Guidelines' declarator layout (NL.18) and
+# Warren DeLano's indent, function braces and `if(` from his PyMOL C.
+# docs/style/cpp-style.md gives the rules this file cannot express.
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+IndentWidth: 2
+ContinuationIndentWidth: 4
+TabWidth: 8
+UseTab: Never
+ColumnLimit: 80
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel: false
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: true
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+InsertBraces: true
+SpaceBeforeParens: Never
+SpaceAfterCStyleCast: true
+PointerAlignment: Left
+ReferenceAlignment: Left
+DerivePointerAlignment: false
+IndentCaseLabels: false
+NamespaceIndentation: None
+FixNamespaceComments: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AlignAfterOpenBracket: Align
+AlignTrailingComments: true
+BinPackParameters: true
+BinPackArguments: true
+MaxEmptyLinesToKeep: 2
+KeepEmptyLinesAtTheStartOfBlocks: true
+IncludeBlocks: Preserve
+BreakTemplateDeclarations: Yes
+CommentPragmas: '^ *Citation:'
+...

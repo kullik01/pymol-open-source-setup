@@ -1,0 +1,21 @@
+{
+  "plugin": "opp-workflow",
+  "version": "0.5.4",
+  "files": {
+    "check.py": "sha256:d4df134f8aaedb7f359c6dfa9c07c03ce099237b04d491535c3525ab47d5f8f0",
+    "clang-format": "sha256:b68f67be062e4f8230a2c6db8aa26c30aaa2d80c00952e0c9da7e43c3fbad136",
+    "opp_style/__init__.py": "sha256:6040be28c9567e43e662b17c63b97444035ceca5653fc2b46e80f6f6c69edeb9",
+    "opp_style/changes.py": "sha256:554fd76c38f99096292e378acb6a6795aab1304d09b39df599f0170eec7c7956",
+    "opp_style/citations.py": "sha256:49bdf98296cfb90ab0f0f5080756f0892ebd4dbd2a922d9716bfb2e58d264c14",
+    "opp_style/clang_format.py": "sha256:25c7c2a4d7af3dcec8dde4a97a5823306a5cdd35895626b4dd0509661bb0bbdc",
+    "opp_style/cli.py": "sha256:f78015320dbb871a7e680e8676415257a2523749586edddc68037570cf449e63",
+    "opp_style/cpp_rules.py": "sha256:9200c0b86366a112b2c1080eceeaa8328409dd8d8229b0d316ad053dd3169e1b",
+    "opp_style/findings.py": "sha256:f17481cac85615db19880e7cbcfd2652a88ddaef8df33324a0054265a4854ad4",
+    "opp_style/fixer.py": "sha256:29c0e958738f19d8dd6b85d6fba75e5d21a50b533384bcbc6d8426c6656558f6",
+    "opp_style/hygiene.py": "sha256:8acb7192288352328008dcf54d70c33ebbca80679da0beba80883510b278c95e",
+    "opp_style/imports.py": "sha256:064ead42cd6023d6ddbc03fea456dd087196bd26d86486263c2f7f057baebfca",
+    "opp_style/manifest.py": "sha256:8aba1b715f0fc6a1e0086da41a036bee6b4aa55f41f870fc2b29daa8d2780af5",
+    "opp_style/python_rules.py": "sha256:53084f6cdc6b206db2c351acb419c53dcd6b3b53de468f47e270fb59aeb34db8",
+    "opp_style/settings.py": "sha256:7bd5a5ce680ce39211513d56248ede585601aff154b6b555940137b509325667"
+  }
+}

@@ -74,10 +74,14 @@ def check_online(a_tmp_dir: str) -> bool:
   # a certificate error fails at once, network problems get retried
   for tmp_attempt in range(1, 4):
     try:
-      urllib.request.urlopen("https://files.rcsb.org/header/1UBQ.cif", timeout=30).read(64)
+      with urllib.request.urlopen("https://files.rcsb.org/header/1UBQ.cif", timeout=30) as tmp_response:
+        tmp_response.read(64)
       break
-    except urllib.error.URLError as tmp_error:
-      if isinstance(tmp_error.reason, ssl.SSLError) or tmp_attempt == 3:
+    except OSError as tmp_error:
+      # URLError wraps the cause in "reason"; timeouts and resets while
+      # reading arrive unwrapped
+      tmp_reason = getattr(tmp_error, "reason", tmp_error)
+      if isinstance(tmp_reason, ssl.SSLCertVerificationError) or tmp_attempt == 3:
         raise
       time.sleep(10)
   cmd.fetch("1ubq", path=a_tmp_dir, type="cif", quiet=1)
@@ -99,17 +103,15 @@ def check_gui(a_tmp_dir: str) -> str:
   """Checks the Qt GUI and OpenGL rendering. Returns a description of the mode."""
   if pymol.invocation.options.no_gui:
     return "headless"
-  from pymol.Qt import QtWidgets
+  from pymol.Qt import PYQT_NAME, QtWidgets, utils
   tmp_app = QtWidgets.QApplication.instance()
   assert tmp_app is not None, "Qt GUI is not running"
   assert not tmp_app.windowIcon().isNull(), "window icon is missing"
   tmp_png = os.path.join(a_tmp_dir, "opengl.png")
   cmd.png(tmp_png, width=200, height=150, ray=0)
   assert os.path.getsize(tmp_png) > 1000, "OpenGL rendered image is empty"
-  # PyMOL's dialogs are .ui forms, loaded with the Qt binding's UI loader
+  # PyMOL's dialogs are .ui forms, loaded like in pmg_qt/pymol_qt_gui.py
   import pmg_qt.pymol_qt_gui
-  from pymol.Qt import PYQT_NAME, utils
-  # Same path as PyMOL's own dialogs (pmg_qt/pymol_qt_gui.py)
   tmp_form = os.path.join(os.path.dirname(pmg_qt.pymol_qt_gui.__file__), "forms", "fetch.ui")
   tmp_widget = QtWidgets.QWidget()
   assert utils.loadUi(tmp_form, tmp_widget) is not None, "loading a .ui form failed"

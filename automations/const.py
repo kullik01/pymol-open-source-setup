@@ -38,7 +38,8 @@ with open(PROJECT_ROOT_DIR / "pyproject.toml", "rb") as tmp_file:
 
 # The frozen application (see build_exe.build): a folder on Windows and Linux, an app bundle on macOS
 FROZEN_APP_DIR = DIST_DIR / f"exe.{sysconfig.get_platform()}-{PYTHON_VERSION}"
-MACOS_APP_DIR = DIST_DIR / f"PyMOL-Open-Source-{PROJECT_VERSION}.app"
+MACOS_APP_DIR = DIST_DIR / "PyMOL-Open-Source.app"
+"""The macOS app; no version in its name, so a newer one replaces it."""
 
 WIN32 = sys.platform == "win32"
 MACOS = sys.platform == "darwin"

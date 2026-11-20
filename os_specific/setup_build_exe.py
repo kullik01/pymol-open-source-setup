@@ -5,7 +5,7 @@ Do not run this file directly, use: automator build app
 
 Output:
   Windows/Linux: dist/exe.<platform>-<python version>/
-  macOS:         dist/PyMOL-Open-Source-<version>.app
+  macOS:         dist/PyMOL-Open-Source.app
 """
 import importlib.metadata
 import pathlib
@@ -162,7 +162,8 @@ if sys.platform == "win32":
 if sys.platform == "darwin":
   options["build_exe"]["includes"].append("ssl")
   options["bdist_mac"] = {
-    "bundle_name": f"PyMOL-Open-Source-{PROJECT_VERSION}",
+    # No version in the name: a newer app replaces the old one in Applications
+    "bundle_name": "PyMOL-Open-Source",
     "custom_info_plist": str(OS_SPECIFIC_DIR / "Info.plist"),
     # Keeps the version of the app bundle in sync with pyproject.toml
     "plist_items": [

@@ -1,4 +1,4 @@
-# Dependencies of the frozen application and its build, for all platforms (Python 3.13).
+# Dependencies of the frozen application and its build, for all platforms (Python version: .python-version).
 # Install them with "./automator.sh setup" (Windows: "win_automator.bat setup").
 
 # Bundled into the application

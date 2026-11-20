@@ -28,8 +28,7 @@ def _use_system_ca_certificates() -> None:
   """
   if os.environ.get("SSL_CERT_FILE") or os.environ.get("SSL_CERT_DIR"):
     return
-  platform = "linux" if sys.platform.startswith("linux") else sys.platform
-  for tmp_filepath in CA_BUNDLE_FILEPATHS.get(platform, ()):
+  for tmp_filepath in CA_BUNDLE_FILEPATHS.get(sys.platform, ()):
     if os.path.isfile(tmp_filepath):
       os.environ["SSL_CERT_FILE"] = tmp_filepath
       os.environ.setdefault("REQUESTS_CA_BUNDLE", tmp_filepath)
@@ -37,8 +36,12 @@ def _use_system_ca_certificates() -> None:
 
 
 def _use_pyside6() -> None:
-  """Selects PySide6 for PyMOL's Qt layer (pymol.Qt), the only Qt binding of the app."""
-  os.environ.setdefault("QT_API", "pyside6")
+  """Selects PySide6 for PyMOL's Qt layer (pymol.Qt), the only Qt binding of the app.
+
+  Overrides a QT_API the user set for another binding (e.g. pyqt5), which
+  the app does not contain and pymol.Qt would then fail to import.
+  """
+  os.environ["QT_API"] = "pyside6"
 
 
 if __name__ == '__main__':

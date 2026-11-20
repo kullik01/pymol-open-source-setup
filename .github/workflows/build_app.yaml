@@ -236,7 +236,9 @@ jobs:
         shell: pwsh
         run: |
           $app = Join-Path $env:APPDATA "PyMOL-Open-Source"
-          Start-Process (Join-Path $app "unins000.exe") -Wait -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'
+          # The uninstaller the Apps settings use (its number can change, e.g. unins001.exe after an update)
+          $uninstaller = (Get-ItemProperty $env:UNINSTALL_KEY).UninstallString.Trim('"')
+          Start-Process $uninstaller -Wait -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'
           # The uninstaller restarts itself from %TEMP%, so wait until the folder is gone
           for ($i = 0; $i -lt 60 -and (Test-Path $app); $i++) { Start-Sleep -Seconds 2 }
           if (Test-Path $app) { throw "Not uninstalled: $app" }

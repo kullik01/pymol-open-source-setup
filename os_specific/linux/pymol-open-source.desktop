@@ -1,9 +1,9 @@
 [Desktop Entry]
-Name=Open-Source PyMOL
+Name=PyMOL-Open-Source
 Comment=Powerful visualization software for rendering and animating 3D molecular structures.
 GenericName=Molecular Viewer
-Exec=/opt/open-source-pymol/Open-Source-PyMOL %F
-Icon=open-source-pymol
+Exec=/opt/pymol-open-source/PyMOL-Open-Source %F
+Icon=pymol-open-source
 Type=Application
 StartupNotify=false
 StartupWMClass=PyMOL

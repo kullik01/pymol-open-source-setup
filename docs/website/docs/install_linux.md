@@ -1,6 +1,6 @@
 # Installation for Linux
 There are three different packages available to install
-Open-Source PyMOL under Linux (x86_64).
+PyMOL-Open-Source under Linux (x86_64).
 The DEB and RPM packages install all required system libraries automatically.
 
 Install location: `/opt/{{ app_dir }}`
@@ -43,7 +43,7 @@ sudo zypper remove PyMOL-Open-Source
 
 ## Generic
 Besides the DEB and RPM package it is possible to install
-Open-Source PyMOL using a .tar.gz file:
+PyMOL-Open-Source using a .tar.gz file:
 {{ download_link(".tar.gz") }}
 
 That archive contains a portable installation and can be
@@ -54,7 +54,7 @@ tar -xzf {{ file_name(".tar.gz") }}
 This will create the directory `{{ app_dir }}` in the current working directory.
 Feel free to move it anywhere you want and start PyMOL with:
 ```shell
-./{{ app_dir }}/Open-Source-PyMOL
+./{{ app_dir }}/PyMOL-Open-Source
 ```
 The portable installation uses the OpenGL, X11/XCB and font libraries and the CA certificates
 (package `ca-certificates`, needed to fetch structures from the PDB) of your system,

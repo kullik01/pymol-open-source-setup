@@ -175,12 +175,12 @@ if sys.platform == "darwin":
 with tempfile.TemporaryDirectory() as tmp_index_dir:
   options["build_exe"]["include_files"] += collect_license_files(pathlib.Path(tmp_index_dir))
   setup(
-    name="Open-Source-PyMOL",
+    name="PyMOL-Open-Source",
     version=PROJECT_VERSION,
     options=options,
     executables=[
       {
-        "target_name": "PyMOL" if sys.platform == "darwin" else "Open-Source-PyMOL",
+        "target_name": "PyMOL-Open-Source",
         "script": PROJECT_ROOT_DIR / "edited" / "pymol" / "startup_wrapper.py",
         "base": "gui",
         "icon": ICON_FILEPATH,

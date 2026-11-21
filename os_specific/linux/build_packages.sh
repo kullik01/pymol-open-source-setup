@@ -27,9 +27,9 @@ trap 'rm -rf "$STAGING_DIR"' EXIT
 mkdir -p "$OUT_DIR"
 
 # --- Files for the .deb/.rpm packages besides the application itself
-sed "s|/opt/open-source-pymol|${INSTALL_DIR}|g" \
-  os_specific/linux/open-source-pymol.desktop > "$STAGING_DIR/open-source-pymol.desktop"
-ln -s "${INSTALL_DIR}/Open-Source-PyMOL" "$STAGING_DIR/Open-Source-PyMOL"
+sed "s|/opt/pymol-open-source|${INSTALL_DIR}|g" \
+  os_specific/linux/pymol-open-source.desktop > "$STAGING_DIR/pymol-open-source.desktop"
+ln -s "${INSTALL_DIR}/PyMOL-Open-Source" "$STAGING_DIR/PyMOL-Open-Source"
 METAINFO="io.github.kullik01.pymol-open-source.metainfo.xml"
 # Release date: the date of the built commit, so rebuilds of a version keep it
 RELEASE_DATE="$(git log -1 --format=%cs 2> /dev/null || date -u +%F)"
@@ -71,16 +71,18 @@ FPM_ARGS=(
   --vendor "Hannah Kullik, Martin Urban"
   --url "https://kullik01.github.io/pymol-open-source-setup"
   --category science
-  --description "Open-Source PyMOL - molecular visualization system (unofficial build)"
+  --description "PyMOL-Open-Source - molecular visualization system (unofficial build of Open-Source PyMOL)"
   --force
+  # The package owns its folder in /opt, so an update or uninstall removes it
+  --directories "$INSTALL_DIR"
 )
 PACKAGE_CONTENTS=(
   "${FROZEN_APP_DIR}/=${INSTALL_DIR}/"
-  "$STAGING_DIR/Open-Source-PyMOL=/usr/bin/Open-Source-PyMOL"
-  "$STAGING_DIR/open-source-pymol.desktop=/usr/share/applications/open-source-pymol.desktop"
-  "os_specific/linux/open-source-pymol-256.png=/usr/share/icons/hicolor/256x256/apps/open-source-pymol.png"
+  "$STAGING_DIR/PyMOL-Open-Source=/usr/bin/PyMOL-Open-Source"
+  "$STAGING_DIR/pymol-open-source.desktop=/usr/share/applications/pymol-open-source.desktop"
+  "os_specific/linux/pymol-open-source-256.png=/usr/share/icons/hicolor/256x256/apps/pymol-open-source.png"
   "$STAGING_DIR/${METAINFO}=/usr/share/metainfo/${METAINFO}"
-  "os_specific/linux/open-source-pymol-mime.xml=/usr/share/mime/packages/open-source-pymol.xml"
+  "os_specific/linux/pymol-open-source-mime.xml=/usr/share/mime/packages/pymol-open-source.xml"
 )
 
 # Portable archive: extracts into a single PyMOL-Open-Source-<version>/ directory
@@ -94,6 +96,7 @@ build_deb() {
   # Debian package names must be lowercase
   fpm "${FPM_ARGS[@]}" -t deb --name "${APP_NAME,,}" --architecture amd64 \
     --package "$OUT_DIR/${APP_NAME}_v${VERSION}_amd64.deb" \
+    --after-install os_specific/linux/remove_empty_old_folders.sh \
     "${DEB_DEPENDS[@]/#/--depends=}" \
     "${PACKAGE_CONTENTS[@]}"
 }
@@ -104,6 +107,7 @@ build_rpm() {
   fpm "${FPM_ARGS[@]}" -t rpm --name "$APP_NAME" --architecture x86_64 \
     --rpm-rpmbuild-define "_build_id_links none" \
     --package "$OUT_DIR/${APP_NAME}_v${VERSION}_x86_64.rpm" \
+    --rpm-posttrans os_specific/linux/remove_empty_old_folders.sh \
     --depends=ca-certificates \
     "${RPM_SONAMES[@]/#/--depends=}" \
     "${PACKAGE_CONTENTS[@]}"

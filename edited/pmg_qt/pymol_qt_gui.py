@@ -1375,10 +1375,15 @@ def execapp():
 
     # BEGIN EDITED CODE SEGMENT
     # :author Hannah Kullik
-    # Menu Quit (confirm_quit) or QApplication.quit() bypasses cmd.quit
+    # QApplication.exit() ends the event loop without closing the window
+    # (closeEvent calls cmd.quit). Without the event loop, a thread holding
+    # PyMOL's API lock may wait for the GUI thread forever: wait at most 5 s.
     exit_code = app.exec()
     if quits_without_exit_handlers:
-        pymol.cmd.quit(exit_code)
+        pymol.cmd.interrupt()
+        if pymol.cmd.lock_api.acquire(timeout=5):
+            pymol.cmd.quit(exit_code)
+        end_process(exit_code)
     # END EDITED CODE SEGMENT
 
 
@@ -1401,16 +1406,27 @@ def quit_without_exit_handlers():
         # an embedded PyMOL (pymol2) must not end the process
         if pymol_instance is not pymol.cmd._COb:
             return quit_pymol(pymol_instance, code)
-        for stream in (sys.stdout, sys.stderr):
-            try:
-                stream.flush()
-            except (AttributeError, OSError, ValueError):
-                # no console (None), or a closed or broken stream
-                pass
-        os._exit(code)
+        end_process(code)
 
     pymol._cmd.quit = quit_and_end_process
     return True
+
+
+def end_process(code):
+    '''
+    Flushes Python's and the C library's output and ends the process at once
+    with exit code `code`, without exit handlers (Linux, macOS).
+    '''
+    import ctypes
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.flush()
+        except (AttributeError, OSError, ValueError):
+            # no console (None), or a closed or broken stream
+            pass
+    # C exit() flushed the C library's streams as well
+    ctypes.CDLL(None).fflush(None)
+    os._exit(code)
 
 
 def offer_to_remove_older_apps(window):

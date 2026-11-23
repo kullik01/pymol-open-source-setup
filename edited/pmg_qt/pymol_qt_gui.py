@@ -1247,6 +1247,11 @@ def execapp():
             for v in ['QT_SCALE_FACTOR', 'QT_SCREEN_SCALE_FACTORS']):
         QtCore.QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling)
 
+    # BEGIN EDITED CODE SEGMENT
+    # :author Hannah Kullik
+    quits_without_exit_handlers = quit_without_exit_handlers()
+    # END EDITED CODE SEGMENT
+
     # fix Windows taskbar icon
     if pymol.IS_WINDOWS:
         import ctypes
@@ -1368,11 +1373,62 @@ def execapp():
         QtCore.QTimer.singleShot(1000, lambda: offer_to_remove_older_apps(window))
     # END EDITED CODE SEGMENT
 
-    app.exec()
+    # BEGIN EDITED CODE SEGMENT
+    # :author Hannah Kullik
+    # QApplication.exit() ends the event loop without closing the window
+    # (closeEvent calls cmd.quit). Without the event loop, a thread holding
+    # PyMOL's API lock may wait for the GUI thread forever: wait at most 5 s.
+    exit_code = app.exec()
+    if quits_without_exit_handlers:
+        pymol.cmd.interrupt()
+        if pymol.cmd.lock_api.acquire(timeout=5):
+            pymol.cmd.quit(exit_code)
+        end_process(exit_code)
+    # END EDITED CODE SEGMENT
 
 
 # BEGIN EDITED CODE SEGMENT
 # :author Hannah Kullik
+def quit_without_exit_handlers():
+    '''
+    Makes PyMOL end the process with os._exit when it quits (Linux, macOS)
+    and returns whether it did.
+
+    PyMOL's quit calls C exit(), whose C++ static destructors crash in
+    PySide's BindingManager (segfault on quit); os._exit skips them. On
+    Windows, DLL destructors run even then, so Windows keeps PyMOL's quit.
+    '''
+    if pymol.IS_WINDOWS:
+        return False
+    quit_pymol = pymol._cmd.quit
+
+    def quit_and_end_process(pymol_instance, code=0):
+        # an embedded PyMOL (pymol2) must not end the process
+        if pymol_instance is not pymol.cmd._COb:
+            return quit_pymol(pymol_instance, code)
+        end_process(code)
+
+    pymol._cmd.quit = quit_and_end_process
+    return True
+
+
+def end_process(code):
+    '''
+    Flushes Python's and the C library's output and ends the process at once
+    with exit code `code`, without exit handlers (Linux, macOS).
+    '''
+    import ctypes
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.flush()
+        except (AttributeError, OSError, ValueError):
+            # no console (None), or a closed or broken stream
+            pass
+    # C exit() flushed the C library's streams as well
+    ctypes.CDLL(None).fflush(None)
+    os._exit(code)
+
+
 def offer_to_remove_older_apps(window):
     '''
     Offers once to move older PyMOL-Open-Source-<version>.app bundles to the Trash

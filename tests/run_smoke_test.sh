@@ -28,6 +28,11 @@ for ATTEMPT in $(seq 1 "$ATTEMPTS"); do
   if [ "$EXIT_CODE" -eq 0 ] && grep -q "SMOKE TEST OK" "$LOG_FILE"; then
     exit 0
   fi
+  # The test passed, but PyMOL crashed when it quit (139: segfault, 134: abort): no retry
+  if grep -q "SMOKE TEST OK" "$LOG_FILE" && { [ "$EXIT_CODE" -eq 139 ] || [ "$EXIT_CODE" -eq 134 ]; }; then
+    echo "Smoke test failed: PyMOL crashed when it quit (exit code $EXIT_CODE)" >&2
+    exit 1
+  fi
   echo "Smoke test failed (exit code $EXIT_CODE, attempt $ATTEMPT of $ATTEMPTS)" >&2
 done
 exit 1
